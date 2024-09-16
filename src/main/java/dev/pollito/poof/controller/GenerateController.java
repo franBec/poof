@@ -29,10 +29,12 @@ public class GenerateController implements GenerateApi {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
 
-        // Add each generated file to the ZIP
+        // Add each generated file to the ZIP, preserving the folder structure
         for (File file : generateService.generateFiles()) {
+            // Create a ZipEntry with the folder structure
             try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+                ZipEntry zipEntry = new ZipEntry(file.getParentFile().getName() + "/" + file.getName());
+                zipOutputStream.putNextEntry(zipEntry);
 
                 // Write the file data to the ZIP
                 byte[] buffer = new byte[1024];
@@ -57,5 +59,6 @@ public class GenerateController implements GenerateApi {
                 .headers(headers)
                 .contentLength(byteArrayOutputStream.size())
                 .body(new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray())));
+
     }
 }
