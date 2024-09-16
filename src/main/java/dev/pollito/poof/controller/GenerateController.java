@@ -1,7 +1,7 @@
 package dev.pollito.poof.controller;
 
 import dev.pollito.poof.api.GenerateApi;
-import dev.pollito.poof.model.Contracts;
+import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.service.GenerateService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,22 +20,18 @@ public class GenerateController implements GenerateApi {
 
   @Override
   @SneakyThrows
-  public ResponseEntity<Resource> generate(Contracts contracts) {
+  public ResponseEntity<Resource> generate(GenerateRequest generateRequest) {
+    ByteArrayOutputStream byteArrayOutputStream = generateService.generateFiles(generateRequest);
 
-    // Generate ZIP of baseTemplate folder
-    ByteArrayOutputStream zipOutputStream = generateService.generateFiles();
-
-    // Prepare InputStreamResource from ByteArrayOutputStream
     InputStreamResource resource =
-        new InputStreamResource(new ByteArrayInputStream(zipOutputStream.toByteArray()));
+        new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
 
-    // Set HTTP headers for downloading the file
     HttpHeaders headers = new HttpHeaders();
     headers.add("Content-Disposition", "attachment; filename=baseTemplate.zip");
 
     return ResponseEntity.ok()
         .headers(headers)
-        .contentLength(zipOutputStream.size())
+        .contentLength(byteArrayOutputStream.size())
         .body(resource);
   }
 }

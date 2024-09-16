@@ -20,7 +20,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Contracts'
+              $ref: '#/components/schemas/GenerateRequest'
       responses:
         '200':
           description: Spring Boot 3 Project in zip file
@@ -39,13 +39,15 @@ components:
   schemas:
     Contracts:
       type: object
+      required:
+        - providerContract
       properties:
-        providerContract:
-          type: string
         consumerContracts:
           type: array
           items:
             type: string
+        providerContract:
+          type: string
     Error:
       type: object
       properties:
@@ -68,4 +70,18 @@ components:
         trace:
           description: opentelemetry TraceID, a unique identifier.
           example: 0c6a41e22fe6478cc391908406ca9b8d
+          type: string
+    GenerateRequest:
+      type: object
+      properties:
+        artifact:
+          default: "poof"
+          type: string
+        contracts:
+          $ref: '#/components/schemas/Contracts'
+        description:
+          default: "poof - Pollito Over Opinionated Framework"
+          type: string
+        group:
+          default: "dev.pollito"
           type: string
