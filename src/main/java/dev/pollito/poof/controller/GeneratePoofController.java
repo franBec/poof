@@ -21,7 +21,8 @@ public class GeneratePoofController implements GenerateApi {
   @Override
   @SneakyThrows
   public ResponseEntity<Resource> generate(GenerateRequest generateRequest) {
-    ByteArrayOutputStream byteArrayOutputStream = generatePoofService.generateFiles(generateRequest);
+    ByteArrayOutputStream byteArrayOutputStream =
+        generatePoofService.generateFiles(generateRequest);
 
     InputStreamResource resource =
         new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
