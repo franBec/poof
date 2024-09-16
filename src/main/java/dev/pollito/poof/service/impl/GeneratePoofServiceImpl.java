@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GeneratePoofServiceImpl implements GeneratePoofService {
+
+  public static final String SRC_MAIN_JAVA_COM_EXAMPLE_DEMO = "src/main/java/com/example/demo";
+
   @Override
   @SneakyThrows
   public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) {
@@ -59,10 +62,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         } else {
           if ("pom.xml".equals(file.getName())) {
             addFileWithReplacementsToZip(
-                file,
-                zipEntryName,
-                zipOutputStream,
-                pomXmlReplacements(generateRequest.getProjectMetadata()));
+                file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
           } else if ("application.yml".equals(file.getName())) {
             addFileWithReplacementsToZip(
                 file,
@@ -85,7 +85,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
   private boolean isAspectFolder(@NotNull File file, String parentFolder) {
     return "aspect".equals(file.getName())
-        && parentFolder.startsWith("src/main/java/com/example/demo");
+        && parentFolder.startsWith(SRC_MAIN_JAVA_COM_EXAMPLE_DEMO);
   }
 
   private @NotNull Map<String, String> applicationYmlReplacements(
@@ -106,11 +106,16 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   private @NotNull Map<String, String> pomXmlReplacements(
-      @NotNull ProjectMetadata projectMetadata) {
+      @NotNull GenerateRequest generateRequest) {
     Map<String, String> replacements = new HashMap<>();
-    replacements.put("<!--groupId-->", projectMetadata.getGroup());
-    replacements.put("<!--artifactId-->", projectMetadata.getArtifact());
-    replacements.put("<!--description-->", projectMetadata.getDescription());
+    replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
+    replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
+    replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
+    if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
+      replacements.put(
+          "\n\t\t<dependency>\n\t\t\t<groupId>org.aspectj</groupId>\n\t\t\t<artifactId>aspectjtools</artifactId>\n\t\t\t<version>1.9.22.1</version>\n\t\t</dependency>",
+          "");
+    }
 
     return replacements;
   }
@@ -120,9 +125,9 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     String groupPath = projectMetadata.getGroup().replace('.', '/');
     String artifact = projectMetadata.getArtifact();
 
-    if (parentFolder.startsWith("src/main/java/com/example/demo")) {
+    if (parentFolder.startsWith(SRC_MAIN_JAVA_COM_EXAMPLE_DEMO)) {
       return parentFolder.replace(
-              "src/main/java/com/example/demo", "src/main/java/" + groupPath + "/" + artifact)
+              SRC_MAIN_JAVA_COM_EXAMPLE_DEMO, "src/main/java/" + groupPath + "/" + artifact)
           + file.getName();
     }
     if (parentFolder.startsWith("src/test/java/com/example/demo")) {
