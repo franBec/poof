@@ -11,12 +11,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,12 +25,14 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   @Override
   @SneakyThrows
   public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) {
-    Resource baseTemplateResource = new ClassPathResource("baseTemplate");
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-      File baseTemplateFolder = baseTemplateResource.getFile();
-      zipFolder(baseTemplateFolder, "", zipOutputStream, generateRequest.getProjectMetadata());
+      zipFolder(
+          new ClassPathResource("baseTemplate").getFile(),
+          "",
+          zipOutputStream,
+          generateRequest.getProjectMetadata());
     } catch (IOException e) {
       e.printStackTrace();
       throw new IOException("Error zipping baseTemplate folder", e);
@@ -53,15 +56,47 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
           zipFolder(file, zipEntryName + "/", zipOutputStream, projectMetadata);
         } else {
           if ("pom.xml".equals(file.getName())) {
-            addPomFileToZip(file, zipEntryName, zipOutputStream, projectMetadata);
+            addFileWithReplacementsToZip(
+                file, zipEntryName, zipOutputStream, pomXmlReplacements(projectMetadata));
+          } else if ("application.yml".equals(file.getName())) {
+            addFileWithReplacementsToZip(
+                file, zipEntryName, zipOutputStream, applicationYmlReplacements(projectMetadata));
           } else if (file.getName().endsWith(".java")) {
-            addJavaFileToZip(file, zipEntryName, zipOutputStream, projectMetadata);
+            addFileWithReplacementsToZip(
+                file, zipEntryName, zipOutputStream, javaReplacements(projectMetadata));
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
         }
       }
     }
+  }
+
+  private @NotNull Map<String, String> applicationYmlReplacements(
+      @NotNull ProjectMetadata projectMetadata) {
+    Map<String, String> replacements = new HashMap<>();
+    replacements.put("#artifact", projectMetadata.getArtifact());
+
+    return replacements;
+  }
+
+  private @NotNull Map<String, String> javaReplacements(@NotNull ProjectMetadata projectMetadata) {
+    Map<String, String> replacements = new HashMap<>();
+    replacements.put("/*group*/", projectMetadata.getGroup());
+    replacements.put("/*artifact*/", projectMetadata.getArtifact());
+    replacements.put("/*Artifact*/", capitalizeFirstLetter(projectMetadata.getArtifact()));
+
+    return replacements;
+  }
+
+  private @NotNull Map<String, String> pomXmlReplacements(
+      @NotNull ProjectMetadata projectMetadata) {
+    Map<String, String> replacements = new HashMap<>();
+    replacements.put("<!--groupId-->", projectMetadata.getGroup());
+    replacements.put("<!--artifactId-->", projectMetadata.getArtifact());
+    replacements.put("<!--description-->", projectMetadata.getDescription());
+
+    return replacements;
   }
 
   private @NotNull String getNewZipEntryName(
@@ -83,38 +118,18 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void addJavaFileToZip(
+  private void addFileWithReplacementsToZip(
       @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
-      @NotNull ProjectMetadata projectMetadata) {
+      @NotNull Map<String, String> replacements) {
     String content = Files.readString(file.toPath());
 
-    content = content.replace("/*group*/", projectMetadata.getGroup());
-    content = content.replace("/*artifact*/", projectMetadata.getArtifact());
-    String capitalizedArtifact = capitalizeFirstLetter(projectMetadata.getArtifact());
-    content = content.replace("/*Artifact*/", capitalizedArtifact);
+    for (Map.Entry<String, String> entry : replacements.entrySet()) {
+      content = content.replace(entry.getKey(), entry.getValue());
+    }
 
-    ZipEntry zipEntry = new ZipEntry(zipEntryName);
-    zipOutputStream.putNextEntry(zipEntry);
-    zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
-    zipOutputStream.closeEntry();
-  }
-
-  @SneakyThrows
-  private void addPomFileToZip(
-      @NotNull File file,
-      String zipEntryName,
-      @NotNull ZipOutputStream zipOutputStream,
-      @NotNull ProjectMetadata projectMetadata) {
-    String content = Files.readString(file.toPath());
-
-    content = content.replace("<!--groupId-->", projectMetadata.getGroup());
-    content = content.replace("<!--artifactId-->", projectMetadata.getArtifact());
-    content = content.replace("<!--description-->", projectMetadata.getDescription());
-
-    ZipEntry zipEntry = new ZipEntry(zipEntryName);
-    zipOutputStream.putNextEntry(zipEntry);
+    zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
     zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
     zipOutputStream.closeEntry();
   }
