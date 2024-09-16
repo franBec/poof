@@ -9,7 +9,7 @@ info:
 servers:
   - url: 'http://localhost:8080'
 paths:
-  /poster:
+  /generate:
     post:
       tags:
         - Generator
