@@ -5,5 +5,5 @@ import java.io.IOException;
 import java.util.List;
 
 public interface GenerateService {
-    List<File> generateFiles() throws IOException;
+  List<File> generateFiles() throws IOException;
 }
