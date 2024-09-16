@@ -29,10 +29,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       zipFolder(
-          new ClassPathResource("baseTemplate").getFile(),
-          "",
-          zipOutputStream,
-          generateRequest.getProjectMetadata());
+          new ClassPathResource("baseTemplate").getFile(), "", zipOutputStream, generateRequest);
     } catch (IOException e) {
       e.printStackTrace();
       throw new IOException("Error zipping baseTemplate folder", e);
@@ -46,30 +43,49 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       @NotNull File folder,
       String parentFolder,
       ZipOutputStream zipOutputStream,
-      ProjectMetadata projectMetadata) {
+      GenerateRequest generateRequest) {
     File[] files = folder.listFiles();
 
     if (files != null) {
       for (File file : files) {
-        String zipEntryName = getNewZipEntryName(parentFolder, file, projectMetadata);
+        String zipEntryName =
+            getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
         if (file.isDirectory()) {
-          zipFolder(file, zipEntryName + "/", zipOutputStream, projectMetadata);
+          if (isAspectFolder(file, parentFolder)
+              && Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
+            continue;
+          }
+          zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
         } else {
           if ("pom.xml".equals(file.getName())) {
             addFileWithReplacementsToZip(
-                file, zipEntryName, zipOutputStream, pomXmlReplacements(projectMetadata));
+                file,
+                zipEntryName,
+                zipOutputStream,
+                pomXmlReplacements(generateRequest.getProjectMetadata()));
           } else if ("application.yml".equals(file.getName())) {
             addFileWithReplacementsToZip(
-                file, zipEntryName, zipOutputStream, applicationYmlReplacements(projectMetadata));
+                file,
+                zipEntryName,
+                zipOutputStream,
+                applicationYmlReplacements(generateRequest.getProjectMetadata()));
           } else if (file.getName().endsWith(".java")) {
             addFileWithReplacementsToZip(
-                file, zipEntryName, zipOutputStream, javaReplacements(projectMetadata));
+                file,
+                zipEntryName,
+                zipOutputStream,
+                javaReplacements(generateRequest.getProjectMetadata()));
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
         }
       }
     }
+  }
+
+  private boolean isAspectFolder(@NotNull File file, String parentFolder) {
+    return "aspect".equals(file.getName())
+        && parentFolder.startsWith("src/main/java/com/example/demo");
   }
 
   private @NotNull Map<String, String> applicationYmlReplacements(

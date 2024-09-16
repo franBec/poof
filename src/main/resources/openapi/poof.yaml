@@ -81,6 +81,7 @@ components:
           $ref: '#/components/schemas/ProjectMetadata'
       required:
         - contracts
+        - options
         - projectMetadata
       type: object
     Options:
