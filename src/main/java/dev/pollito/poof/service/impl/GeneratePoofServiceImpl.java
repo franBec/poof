@@ -1,5 +1,7 @@
 package dev.pollito.poof.service.impl;
 
+import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
+
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
@@ -51,12 +53,34 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
           if ("pom.xml".equals(file.getName())) {
             addPomFileToZip(
                 file, zipEntryName, zipOutputStream, generateRequest.getProjectMetadata());
+          } else if (file.getName().endsWith(".java")) {
+            addJavaFileToZip(
+                file, zipEntryName, zipOutputStream, generateRequest.getProjectMetadata());
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
         }
       }
     }
+  }
+
+  private void addJavaFileToZip(
+      @NotNull File file,
+      String zipEntryName,
+      @NotNull ZipOutputStream zipOutputStream,
+      @NotNull ProjectMetadata projectMetadata)
+      throws IOException {
+    String content = Files.readString(file.toPath());
+
+    content = content.replace("/*group*/", projectMetadata.getGroup());
+    content = content.replace("/*artifact*/", projectMetadata.getArtifact());
+    String capitalizedArtifact = capitalizeFirstLetter(projectMetadata.getArtifact());
+    content = content.replace("/*Artifact*/", capitalizedArtifact);
+
+    ZipEntry zipEntry = new ZipEntry(zipEntryName);
+    zipOutputStream.putNextEntry(zipEntry);
+    zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
+    zipOutputStream.closeEntry();
   }
 
   private void addPomFileToZip(
@@ -69,12 +93,10 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
     content = content.replace("<!--groupId-->", projectMetadata.getGroup());
     content = content.replace("<!--artifactId-->", projectMetadata.getArtifact());
-    content = content.replace("<!--name-->", projectMetadata.getArtifact());
     content = content.replace("<!--description-->", projectMetadata.getDescription());
 
     ZipEntry zipEntry = new ZipEntry(zipEntryName);
     zipOutputStream.putNextEntry(zipEntry);
-
     zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
     zipOutputStream.closeEntry();
   }

@@ -11,7 +11,7 @@
 	<groupId><!--groupId--></groupId>
 	<artifactId><!--artifactId--></artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name><!--name--></name>
+	<name><!--artifactId--></name>
 	<description><!--description--></description>
 	<url/>
 	<licenses>
