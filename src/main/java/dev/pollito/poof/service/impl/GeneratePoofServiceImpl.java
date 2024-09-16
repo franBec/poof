@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -21,13 +22,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class GeneratePoofServiceImpl implements GeneratePoofService {
   @Override
-  public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) throws IOException {
+  @SneakyThrows
+  public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) {
     Resource baseTemplateResource = new ClassPathResource("baseTemplate");
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       File baseTemplateFolder = baseTemplateResource.getFile();
-      zipFolder(baseTemplateFolder, "", zipOutputStream, generateRequest);
+      zipFolder(baseTemplateFolder, "", zipOutputStream, generateRequest.getProjectMetadata());
     } catch (IOException e) {
       e.printStackTrace();
       throw new IOException("Error zipping baseTemplate folder", e);
@@ -36,26 +38,24 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     return byteArrayOutputStream;
   }
 
+  @SneakyThrows
   private void zipFolder(
       @NotNull File folder,
       String parentFolder,
       ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest)
-      throws IOException {
+      ProjectMetadata projectMetadata) {
     File[] files = folder.listFiles();
 
     if (files != null) {
       for (File file : files) {
-        String zipEntryName = parentFolder + file.getName();
+        String zipEntryName = getNewZipEntryName(parentFolder, file, projectMetadata);
         if (file.isDirectory()) {
-          zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
+          zipFolder(file, zipEntryName + "/", zipOutputStream, projectMetadata);
         } else {
           if ("pom.xml".equals(file.getName())) {
-            addPomFileToZip(
-                file, zipEntryName, zipOutputStream, generateRequest.getProjectMetadata());
+            addPomFileToZip(file, zipEntryName, zipOutputStream, projectMetadata);
           } else if (file.getName().endsWith(".java")) {
-            addJavaFileToZip(
-                file, zipEntryName, zipOutputStream, generateRequest.getProjectMetadata());
+            addJavaFileToZip(file, zipEntryName, zipOutputStream, projectMetadata);
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
@@ -64,12 +64,30 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     }
   }
 
+  private @NotNull String getNewZipEntryName(
+      @NotNull String parentFolder, File file, @NotNull ProjectMetadata projectMetadata) {
+    String groupPath = projectMetadata.getGroup().replace('.', '/');
+    String artifact = projectMetadata.getArtifact();
+
+    if (parentFolder.startsWith("src/main/java/com/example/demo")) {
+      return parentFolder.replace(
+              "src/main/java/com/example/demo", "src/main/java/" + groupPath + "/" + artifact)
+          + file.getName();
+    }
+    if (parentFolder.startsWith("src/test/java/com/example/demo")) {
+      return parentFolder.replace(
+              "src/test/java/com/example/demo", "src/test/java/" + groupPath + "/" + artifact)
+          + file.getName();
+    }
+    return parentFolder + file.getName();
+  }
+
+  @SneakyThrows
   private void addJavaFileToZip(
       @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
-      @NotNull ProjectMetadata projectMetadata)
-      throws IOException {
+      @NotNull ProjectMetadata projectMetadata) {
     String content = Files.readString(file.toPath());
 
     content = content.replace("/*group*/", projectMetadata.getGroup());
@@ -83,12 +101,12 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     zipOutputStream.closeEntry();
   }
 
+  @SneakyThrows
   private void addPomFileToZip(
       @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
-      @NotNull ProjectMetadata projectMetadata)
-      throws IOException {
+      @NotNull ProjectMetadata projectMetadata) {
     String content = Files.readString(file.toPath());
 
     content = content.replace("<!--groupId-->", projectMetadata.getGroup());
@@ -101,8 +119,9 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     zipOutputStream.closeEntry();
   }
 
+  @SneakyThrows
   private void addFileToZip(
-      File file, String zipEntryName, @NotNull ZipOutputStream zipOutputStream) throws IOException {
+      File file, String zipEntryName, @NotNull ZipOutputStream zipOutputStream) {
     try (FileInputStream fileInputStream = new FileInputStream(file)) {
       ZipEntry zipEntry = new ZipEntry(zipEntryName);
       zipOutputStream.putNextEntry(zipEntry);
@@ -115,9 +134,9 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     }
   }
 
+  @SneakyThrows
   private void writeToFileStream(
-      @NotNull FileInputStream fileInputStream, ZipOutputStream zipOutputStream)
-      throws IOException {
+      @NotNull FileInputStream fileInputStream, ZipOutputStream zipOutputStream) {
     byte[] buffer = new byte[1024];
     int length;
     while ((length = fileInputStream.read(buffer)) > 0) {
