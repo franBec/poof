@@ -5,6 +5,6 @@ import dev.pollito.poof.model.GenerateRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public interface GenerateService {
+public interface GeneratePoofService {
   ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) throws IOException;
 }

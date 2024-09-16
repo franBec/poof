@@ -2,7 +2,7 @@ package dev.pollito.poof.controller;
 
 import dev.pollito.poof.api.GenerateApi;
 import dev.pollito.poof.model.GenerateRequest;
-import dev.pollito.poof.service.GenerateService;
+import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class GenerateController implements GenerateApi {
-  private final GenerateService generateService;
+public class GeneratePoofController implements GenerateApi {
+  private final GeneratePoofService generatePoofService;
 
   @Override
   @SneakyThrows
   public ResponseEntity<Resource> generate(GenerateRequest generateRequest) {
-    ByteArrayOutputStream byteArrayOutputStream = generateService.generateFiles(generateRequest);
+    ByteArrayOutputStream byteArrayOutputStream = generatePoofService.generateFiles(generateRequest);
 
     InputStreamResource resource =
         new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
