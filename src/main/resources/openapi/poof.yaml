@@ -38,9 +38,6 @@ paths:
 components:
   schemas:
     Contracts:
-      type: object
-      required:
-        - providerContract
       properties:
         consumerContracts:
           type: array
@@ -48,8 +45,10 @@ components:
             type: string
         providerContract:
           type: string
-    Error:
+      required:
+        - providerContract
       type: object
+    Error:
       properties:
         error:
           description: Brief error message or identifier.
@@ -71,14 +70,23 @@ components:
           description: opentelemetry TraceID, a unique identifier.
           example: 0c6a41e22fe6478cc391908406ca9b8d
           type: string
+      type: object
     GenerateRequest:
+      properties:
+        contracts:
+          $ref: '#/components/schemas/Contracts'
+        projectMetadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+      required:
+        - contracts
+        - projectMetadata
+      type: object
+    ProjectMetadata:
       type: object
       properties:
         artifact:
           default: "poof"
           type: string
-        contracts:
-          $ref: '#/components/schemas/Contracts'
         description:
           default: "poof - Pollito Over Opinionated Framework"
           type: string

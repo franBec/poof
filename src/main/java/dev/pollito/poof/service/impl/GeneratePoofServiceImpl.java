@@ -1,6 +1,7 @@
 package dev.pollito.poof.service.impl;
 
 import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -48,7 +49,8 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
           zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
         } else {
           if ("pom.xml".equals(file.getName())) {
-            addPomFileToZip(file, zipEntryName, zipOutputStream, generateRequest);
+            addPomFileToZip(
+                file, zipEntryName, zipOutputStream, generateRequest.getProjectMetadata());
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
@@ -58,22 +60,21 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   private void addPomFileToZip(
-      File file,
+      @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest)
+      @NotNull ProjectMetadata projectMetadata)
       throws IOException {
-    // Read the content of the pom.xml file
-    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+    String content = Files.readString(file.toPath());
 
-    // Replace the <!--groupId--> comment with the group ID from GenerateRequest
-    content = content.replace("<!--groupId-->", generateRequest.getGroup());
+    content = content.replace("<!--groupId-->", projectMetadata.getGroup());
+    content = content.replace("<!--artifactId-->", projectMetadata.getArtifact());
+    content = content.replace("<!--name-->", projectMetadata.getArtifact());
+    content = content.replace("<!--description-->", projectMetadata.getDescription());
 
-    // Add the modified content to the ZIP output stream
     ZipEntry zipEntry = new ZipEntry(zipEntryName);
     zipOutputStream.putNextEntry(zipEntry);
 
-    // Write the modified content to the zip output stream
     zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
     zipOutputStream.closeEntry();
   }
