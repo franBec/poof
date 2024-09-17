@@ -79,9 +79,25 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
   private void addJavaFileToZip(
       ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest,
+      @NotNull GenerateRequest generateRequest,
       File file,
-      String zipEntryName) {
+      @NotNull String zipEntryName) {
+    if (zipEntryName.endsWith("config/WebConfig.java")
+        && Boolean.FALSE.equals(generateRequest.getOptions().getAllowCorsFromAnySource())) {
+      return;
+    }
+    if (zipEntryName.endsWith("controller/advice/GlobalControllerAdvice.java")
+        && Boolean.FALSE.equals(generateRequest.getOptions().getControllerAdvice())) {
+      return;
+    }
+    if (zipEntryName.endsWith("config/LogFilterConfig.java")
+        && Boolean.FALSE.equals(generateRequest.getOptions().getLogFilter())) {
+      return;
+    }
+    if (zipEntryName.endsWith("filter/LogFilter.java")
+        && Boolean.FALSE.equals(generateRequest.getOptions().getLogFilter())) {
+      return;
+    }
     addFileWithReplacementsToZip(
         file,
         zipEntryName,
@@ -91,7 +107,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
   private void addApplicationYmlToZip(
       ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest,
+      @NotNull GenerateRequest generateRequest,
       File file,
       String zipEntryName) {
     addFileWithReplacementsToZip(
@@ -140,7 +156,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
     if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
       replacements.put(
-          "\n\t\t<dependency>\n\t\t\t<groupId>org.aspectj</groupId>\n\t\t\t<artifactId>aspectjtools</artifactId>\n\t\t\t<version>1.9.22.1</version>\n\t\t</dependency>",
+          "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>",
           "");
     }
 

@@ -14,29 +14,55 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class GeneratePoofServiceTest {
+  @InjectMocks private GeneratePoofServiceImpl generatePoofService;
+
   public static final String PROJECT_METADATA_GROUP = "dev.pollito";
   public static final String PROJECT_METADATA_ARTIFACT = "poof";
   public static final String PROJECT_METADATA_DESCRIPTION =
       "poof - Pollito Over Opinionated Framework";
-  @InjectMocks private GeneratePoofServiceImpl generatePoofService;
 
-  @Test
+  static Stream<Options> optionsProvider() {
+    List<Options> optionsList = new ArrayList<>();
+    for (boolean allowCors : new boolean[] {true, false}) {
+      for (boolean controllerAdvice : new boolean[] {true, false}) {
+        for (boolean logFilter : new boolean[] {true, false}) {
+          for (boolean loggingAspect : new boolean[] {true, false}) {
+            optionsList.add(
+                new Options()
+                    .allowCorsFromAnySource(allowCors)
+                    .controllerAdvice(controllerAdvice)
+                    .logFilter(logFilter)
+                    .loggingAspect(loggingAspect));
+          }
+        }
+      }
+    }
+    return optionsList.stream();
+  }
+
+  @ParameterizedTest
+  @MethodSource("optionsProvider")
   @SneakyThrows
-  void generatedZipContainsExpectedFiles() {
+  void generatedZipContainsExpectedFiles(Options options) {
     GenerateRequest request =
         new GenerateRequest()
             .projectMetadata(
@@ -44,7 +70,7 @@ class GeneratePoofServiceTest {
                     .group(PROJECT_METADATA_GROUP)
                     .artifact(PROJECT_METADATA_ARTIFACT)
                     .description(PROJECT_METADATA_DESCRIPTION))
-            .options(new Options().loggingAspect(true));
+            .options(options);
 
     Map<String, Boolean> expectedEntryNames = buildExpectedEntryNamesMap(request);
 
@@ -125,8 +151,12 @@ class GeneratePoofServiceTest {
       expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilterConfig.java", false);
       expectedEntryNames.put("src/main/java/dev/pollito/poof/filter/LogFilter.java", false);
     }
-    if(request.getOptions().getAllowCorsFromAnySource()){
+    if (request.getOptions().getAllowCorsFromAnySource()) {
       expectedEntryNames.put("src/main/java/dev/pollito/poof/config/WebConfig.java", false);
+    }
+    if (request.getOptions().getControllerAdvice()) {
+      expectedEntryNames.put(
+          "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java", false);
     }
     return expectedEntryNames;
   }
