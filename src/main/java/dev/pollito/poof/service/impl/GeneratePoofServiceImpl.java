@@ -54,13 +54,6 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         String zipEntryName =
             getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
 
-        if ("DemoApplication.java".equals(file.getName())) {
-          zipEntryName = zipEntryName.replace("DemoApplication.java", capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact()) + "Application.java");
-        } else if ("DemoApplicationTests.java".equals(file.getName())) {
-          zipEntryName = zipEntryName.replace("DemoApplicationTests.java", capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact()) + "ApplicationTests.java");
-
-        }
-
         if (file.isDirectory()) {
           addFolderToZip(parentFolder, zipOutputStream, generateRequest, file, zipEntryName);
         } else if ("pom.xml".equals(file.getName())) {
@@ -69,7 +62,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
           addApplicationYmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
         } else if (file.getName().endsWith(".java")) {
           addJavaFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
-        } else{
+        } else {
           addFileToZip(file, zipEntryName, zipOutputStream);
         }
       }
@@ -163,18 +156,34 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       @NotNull String parentFolder, File file, @NotNull ProjectMetadata projectMetadata) {
     String groupPath = projectMetadata.getGroup().replace('.', '/');
     String artifact = projectMetadata.getArtifact();
+    String zipEntryName;
 
     if (parentFolder.startsWith(SRC_MAIN_JAVA_COM_EXAMPLE_DEMO)) {
-      return parentFolder.replace(
-              SRC_MAIN_JAVA_COM_EXAMPLE_DEMO, "src/main/java/" + groupPath + "/" + artifact)
-          + file.getName();
+      zipEntryName =
+          parentFolder.replace(
+                  SRC_MAIN_JAVA_COM_EXAMPLE_DEMO, "src/main/java/" + groupPath + "/" + artifact)
+              + file.getName();
+    } else if (parentFolder.startsWith("src/test/java/com/example/demo")) {
+      zipEntryName =
+          parentFolder.replace(
+                  "src/test/java/com/example/demo", "src/test/java/" + groupPath + "/" + artifact)
+              + file.getName();
+    } else {
+      zipEntryName = parentFolder + file.getName();
     }
-    if (parentFolder.startsWith("src/test/java/com/example/demo")) {
-      return parentFolder.replace(
-              "src/test/java/com/example/demo", "src/test/java/" + groupPath + "/" + artifact)
-          + file.getName();
+
+    if ("DemoApplication.java".equals(file.getName())) {
+      zipEntryName =
+          zipEntryName.replace(
+              "DemoApplication.java", capitalizeFirstLetter(artifact) + "Application.java");
+    } else if ("DemoApplicationTests.java".equals(file.getName())) {
+      zipEntryName =
+          zipEntryName.replace(
+              "DemoApplicationTests.java",
+              capitalizeFirstLetter(artifact) + "ApplicationTests.java");
     }
-    return parentFolder + file.getName();
+
+    return zipEntryName;
   }
 
   @SneakyThrows
