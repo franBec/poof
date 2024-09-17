@@ -28,7 +28,9 @@ public class GeneratePoofController implements GenerateApi {
         new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("Content-Disposition", "attachment; filename=baseTemplate.zip");
+    headers.add(
+        "Content-Disposition",
+        "attachment; filename=" + generateRequest.getProjectMetadata().getArtifact() + ".zip");
 
     return ResponseEntity.ok()
         .headers(headers)
