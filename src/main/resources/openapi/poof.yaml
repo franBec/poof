@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: poof - Pollito Over Opinionated Framework
+  description: Creates a Spring Boot 3 project with various practices that Pollito thinks are good
+  version: 1.0.0
+  contact:
+    name: Pollito
+    url: https://pollitodev.netlify.app/
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /generate:
+    post:
+      tags:
+        - Generator
+      operationId: generate
+      summary: Creates a Spring Boot 3 project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '200':
+          description: Spring Boot 3 Project in zip file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Contracts:
+      properties:
+        consumerContracts:
+          type: array
+          items:
+            type: string
+        providerContract:
+          type: string
+      required:
+        - providerContract
+      type: object
+    Error:
+      properties:
+        error:
+          description: Brief error message or identifier.
+          example: NoSuchElementException
+          type: string
+        message:
+          description: Detailes error message.
+          example: No value present
+          type: string
+        path:
+          description: Path where errror happened.
+          example: /generate
+          type: string
+        timestamp:
+          description: ISO 8601 Date.
+          example: "2024-01-04T15:30:00Z"
+          type: string
+        trace:
+          description: opentelemetry TraceID, a unique identifier.
+          example: 0c6a41e22fe6478cc391908406ca9b8d
+          type: string
+      type: object
+    GenerateRequest:
+      properties:
+        contracts:
+          $ref: '#/components/schemas/Contracts'
+        options:
+          $ref: '#/components/schemas/Options'
+        projectMetadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+      required:
+        - contracts
+        - options
+        - projectMetadata
+      type: object
+    Options:
+      properties:
+        loggingAspect:
+          type: boolean
+          default: true
+      type: object
+    ProjectMetadata:
+      type: object
+      properties:
+        artifact:
+          default: "poof"
+          type: string
+        description:
+          default: "poof - Pollito Over Opinionated Framework"
+          type: string
+        group:
+          default: "dev.pollito"
+          type: string
