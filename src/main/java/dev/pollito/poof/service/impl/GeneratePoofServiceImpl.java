@@ -54,33 +54,66 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         String zipEntryName =
             getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
         if (file.isDirectory()) {
-          if (isAspectFolder(file, parentFolder)
-              && Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
-            continue;
-          }
-          zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
+          addFileToZip(parentFolder, zipOutputStream, generateRequest, file, zipEntryName);
         } else {
           if ("pom.xml".equals(file.getName())) {
-            addFileWithReplacementsToZip(
-                file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
+            addPomXmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
           } else if ("application.yml".equals(file.getName())) {
-            addFileWithReplacementsToZip(
-                file,
-                zipEntryName,
-                zipOutputStream,
-                applicationYmlReplacements(generateRequest.getProjectMetadata()));
+            addApplicationYmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
           } else if (file.getName().endsWith(".java")) {
-            addFileWithReplacementsToZip(
-                file,
-                zipEntryName,
-                zipOutputStream,
-                javaReplacements(generateRequest.getProjectMetadata()));
+            addJavaFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
           } else {
             addFileToZip(file, zipEntryName, zipOutputStream);
           }
         }
       }
     }
+  }
+
+  private void addFileToZip(
+      String parentFolder,
+      ZipOutputStream zipOutputStream,
+      GenerateRequest generateRequest,
+      File file,
+      String zipEntryName) {
+    if (isAspectFolder(file, parentFolder)
+        && Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
+      return;
+    }
+    zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
+  }
+
+  private void addJavaFileToZip(
+      ZipOutputStream zipOutputStream,
+      GenerateRequest generateRequest,
+      File file,
+      String zipEntryName) {
+    addFileWithReplacementsToZip(
+        file,
+        zipEntryName,
+        zipOutputStream,
+        javaReplacements(generateRequest.getProjectMetadata()));
+  }
+
+  private void addApplicationYmlToZip(
+      ZipOutputStream zipOutputStream,
+      GenerateRequest generateRequest,
+      File file,
+      String zipEntryName) {
+    addFileWithReplacementsToZip(
+        file,
+        zipEntryName,
+        zipOutputStream,
+        applicationYmlReplacements(generateRequest.getProjectMetadata()));
+  }
+
+  private void addPomXmlToZip(
+      ZipOutputStream zipOutputStream,
+      GenerateRequest generateRequest,
+      File file,
+      String zipEntryName) {
+    addFileWithReplacementsToZip(
+        file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
   }
 
   private boolean isAspectFolder(@NotNull File file, String parentFolder) {
