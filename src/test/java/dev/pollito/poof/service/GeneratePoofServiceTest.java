@@ -2,6 +2,7 @@ package dev.pollito.poof.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.pollito.poof.model.GenerateRequest;
@@ -49,6 +50,7 @@ class GeneratePoofServiceTest {
       String mainJavaAppFileContent = null;
       String appTestFileContent = null;
       String applicationYmlContent = null;
+      String aspectContent = null;
 
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
@@ -58,22 +60,23 @@ class GeneratePoofServiceTest {
           pomXmlContent = readZipEntryContent(zipInputStream);
         }
 
-
         if (entryName.equals("src/main/resources/application.yml")) {
           applicationYmlContent = readZipEntryContent(zipInputStream);
         }
         if (entryName.endsWith(".java")) {
           String javaFileContent = readZipEntryContent(zipInputStream);
           assertTrue(
-                  javaFileContent.startsWith("package dev.pollito.poof"),
-                  entryName + " should start with 'package dev.pollito.poof'");
+              javaFileContent.startsWith("package dev.pollito.poof"),
+              entryName + " should start with 'package dev.pollito.poof'");
 
           if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
             mainJavaAppFileContent = javaFileContent;
           }
-
           if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
             appTestFileContent = javaFileContent;
+          }
+          if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
+            aspectContent = javaFileContent;
           }
         }
         zipInputStream.closeEntry();
@@ -82,28 +85,50 @@ class GeneratePoofServiceTest {
       mainJavaFileAssertions(mainJavaAppFileContent);
       appTestFileAssertions(appTestFileContent);
       applicationYmlAssertions(applicationYmlContent);
+      aspectAssertions(request, aspectContent);
+    }
+  }
 
+  private void aspectAssertions(@NotNull GenerateRequest request, String aspectContent) {
+    if (Boolean.TRUE.equals(request.getOptions().getLoggingAspect())) {
+      assertNotNull(aspectContent, "LoggingAspect.java should exist");
+      assertTrue(
+          aspectContent.contains("public class LoggingAspect"),
+          "LoggingAspect.java should contain the correct class name");
+      assertTrue(
+          aspectContent.contains(
+              "@Pointcut(\"execution(public * dev.pollito.poof.controller..*.*(..))\")"),
+          "LoggingAspect.java should contain the correct pointcut expression");
+    } else {
+      assertNull(aspectContent, "LoggingAspect.java should not exist");
     }
   }
 
   private void applicationYmlAssertions(String applicationYmlContent) {
-    assertNotNull(applicationYmlContent);
-    assertTrue(applicationYmlContent.contains("name: poof"), "application.yml should contain the correct spring application name");
+    assertNotNull(applicationYmlContent, "application.yml content should not be null");
+    assertTrue(
+        applicationYmlContent.contains("name: poof"),
+        "application.yml should contain the correct spring application name");
   }
 
   private void appTestFileAssertions(String appTestFileContent) {
-    assertNotNull(appTestFileContent);
-    assertTrue(appTestFileContent.contains("class PoofApplicationTests {"), "Main Java application test file should contain the correct class name");
+    assertNotNull(appTestFileContent, "PoofApplicationTests.java content should not be null");
+    assertTrue(
+        appTestFileContent.contains("class PoofApplicationTests {"),
+        "Main Java application test file should contain the correct class name");
   }
 
   private void mainJavaFileAssertions(String mainJavaAppFileContent) {
-    assertNotNull(mainJavaAppFileContent);
-    assertTrue(mainJavaAppFileContent.contains("public class PoofApplication {"), "Main Java application file should contain the correct class name");
-    assertTrue(mainJavaAppFileContent.contains("SpringApplication.run(PoofApplication.class, args);"), "Main Java application file should run the correct SpringApplication.run");
+    assertNotNull(mainJavaAppFileContent, "PoofApplication.java content should not be null");
+    assertTrue(
+        mainJavaAppFileContent.contains("public class PoofApplication {"),
+        "Main Java application file should contain the correct class name");
+    assertTrue(
+        mainJavaAppFileContent.contains("SpringApplication.run(PoofApplication.class, args);"),
+        "Main Java application file should run the correct SpringApplication.run");
   }
 
-  private void pomXmlAssertions(
-          @NotNull GenerateRequest request, String pomXmlContent) {
+  private void pomXmlAssertions(@NotNull GenerateRequest request, String pomXmlContent) {
     assertNotNull(pomXmlContent, "pom.xml content should not be null");
     assertTrue(
         pomXmlContent.contains("<groupId>dev.pollito</groupId>"),
