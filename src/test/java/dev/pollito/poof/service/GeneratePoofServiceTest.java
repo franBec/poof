@@ -14,6 +14,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -43,6 +45,9 @@ class GeneratePoofServiceTest {
                     .artifact(PROJECT_METADATA_ARTIFACT)
                     .description(PROJECT_METADATA_DESCRIPTION))
             .options(new Options().loggingAspect(true));
+
+    Map<String, Boolean> expectedEntryNames = buildExpectedEntryNamesMap(request);
+
     ByteArrayOutputStream zipOutputStream = generatePoofService.generateFiles(request);
 
     try (ZipInputStream zipInputStream =
@@ -56,6 +61,7 @@ class GeneratePoofServiceTest {
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
         String entryName = entry.getName();
+        assertTrue(expectedEntryNames.containsKey(entryName), "Unexpected file: " + entryName);
 
         if (entryName.equals("pom.xml")) {
           pomXmlContent = readZipEntryContent(zipInputStream);
@@ -80,6 +86,7 @@ class GeneratePoofServiceTest {
             aspectContent = javaFileContent;
           }
         }
+        expectedEntryNames.put(entryName, true);
         zipInputStream.closeEntry();
       }
       pomXmlAssertions(request, pomXmlContent);
@@ -87,7 +94,28 @@ class GeneratePoofServiceTest {
       appTestFileAssertions(appTestFileContent);
       applicationYmlAssertions(applicationYmlContent);
       aspectAssertions(request, aspectContent);
+
+      expectedEntryNames.forEach(
+          (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
     }
+  }
+
+  @NotNull
+  private Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull GenerateRequest request) {
+    Map<String, Boolean> expectedEntryNames = new HashMap<>();
+    expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
+    if (request.getOptions().getLoggingAspect()) {
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java", false);
+    }
+    expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
+    expectedEntryNames.put("src/main/resources/application.yml", false);
+    expectedEntryNames.put("src/test/java/dev/pollito/poof/PoofApplicationTests.java", false);
+    expectedEntryNames.put(".gitignore", false);
+    expectedEntryNames.put("HELP.md", false);
+    expectedEntryNames.put("mvnw", false);
+    expectedEntryNames.put("mvnw.cmd", false);
+    expectedEntryNames.put("pom.xml", false);
+    return expectedEntryNames;
   }
 
   private void aspectAssertions(@NotNull GenerateRequest request, String aspectContent) {
@@ -143,16 +171,14 @@ class GeneratePoofServiceTest {
         pomXmlContent.contains(
             "<description>poof - Pollito Over Opinionated Framework</description>"),
         "pom.xml should contain the correct <description>");
+    String aspectDependency =
+        "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>";
     if (Boolean.TRUE.equals(request.getOptions().getLoggingAspect())) {
       assertTrue(
-          pomXmlContent.contains(
-              "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>"),
-          "pom.xml should contain aspect dependency");
+          pomXmlContent.contains(aspectDependency), "pom.xml should contain aspect dependency");
     } else {
       assertFalse(
-          pomXmlContent.contains(
-              "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>"),
-          "pom.xml should not contain aspect dependency");
+          pomXmlContent.contains(aspectDependency), "pom.xml should not contain aspect dependency");
     }
     assertTrue(
         pomXmlContent.contains("<id>provider generation - poof.yaml</id>"),
