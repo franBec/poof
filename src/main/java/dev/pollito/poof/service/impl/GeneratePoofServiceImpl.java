@@ -8,7 +8,6 @@ import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -33,11 +32,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       zipFolder(
           new ClassPathResource("baseTemplate").getFile(), "", zipOutputStream, generateRequest);
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new IOException("Error zipping baseTemplate folder", e);
     }
-
     return byteArrayOutputStream;
   }
 
@@ -212,9 +207,6 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
       writeToFileStream(fileInputStream, zipOutputStream);
       zipOutputStream.closeEntry();
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new IOException("Error adding file to ZIP: " + file.getAbsolutePath(), e);
     }
   }
 

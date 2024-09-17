@@ -3,6 +3,7 @@ package dev.pollito.poof.service;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.pollito.poof.model.GenerateRequest;
@@ -177,5 +178,11 @@ class GeneratePoofServiceTest {
       byteArrayOutputStream.write(buffer, 0, length);
     }
     return byteArrayOutputStream.toString(StandardCharsets.UTF_8.name());
+  }
+
+  @Test
+  void generatePoofThrowsException() {
+    GenerateRequest generateRequest = new GenerateRequest();
+    assertThrows(RuntimeException.class, () -> generatePoofService.generateFiles(generateRequest));
   }
 }

@@ -10,6 +10,7 @@ import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,5 +61,18 @@ class GeneratePoofControllerTest {
     assertEquals(expectedResponse.getStatusCode(), actualResponse.getStatusCode());
     assertEquals(expectedResponse.getHeaders(), actualResponse.getHeaders());
     assertNotNull(actualResponse.getBody());
+  }
+
+  @Test
+  void generateThrowsException() throws IOException {
+    GenerateRequest generateRequest = new GenerateRequest();
+
+    when(generatePoofService.generateFiles(any(GenerateRequest.class)))
+        .thenThrow(new IOException("Failed to generate files"));
+
+    assertEquals(
+        "Failed to generate files",
+        assertThrows(IOException.class, () -> generatePoofController.generate(generateRequest))
+            .getMessage());
   }
 }
