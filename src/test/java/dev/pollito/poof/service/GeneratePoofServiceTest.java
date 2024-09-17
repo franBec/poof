@@ -49,7 +49,8 @@ class GeneratePoofServiceTest {
     Map<String, Boolean> expectedEntryNames = buildExpectedEntryNamesMap(request);
 
     try (ZipInputStream zipInputStream =
-        new ZipInputStream(new ByteArrayInputStream(generatePoofService.generateFiles(request).toByteArray()))) {
+        new ZipInputStream(
+            new ByteArrayInputStream(generatePoofService.generateFiles(request).toByteArray()))) {
 
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
@@ -124,11 +125,14 @@ class GeneratePoofServiceTest {
       expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilterConfig.java", false);
       expectedEntryNames.put("src/main/java/dev/pollito/poof/filter/LogFilter.java", false);
     }
+    if(request.getOptions().getAllowCorsFromAnySource()){
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/WebConfig.java", false);
+    }
     return expectedEntryNames;
   }
 
   private void aspectAssertions(@NotNull GenerateRequest request, String aspectContent) {
-    if (Boolean.TRUE.equals(request.getOptions().getLoggingAspect())) {
+    if (request.getOptions().getLoggingAspect()) {
       assertNotNull(aspectContent, "LoggingAspect.java should exist");
       assertTrue(
           aspectContent.contains("public class LoggingAspect"),
@@ -182,7 +186,7 @@ class GeneratePoofServiceTest {
         "pom.xml should contain the correct <description>");
     String aspectDependency =
         "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>";
-    if (Boolean.TRUE.equals(request.getOptions().getLoggingAspect())) {
+    if (request.getOptions().getLoggingAspect()) {
       assertTrue(
           pomXmlContent.contains(aspectDependency), "pom.xml should contain aspect dependency");
     } else {

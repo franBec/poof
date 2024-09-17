@@ -86,15 +86,17 @@ components:
       type: object
     Options:
       properties:
-        loggingAspect:
-          type: boolean
+        allowCorsFromAnySource:
           default: true
+          type: boolean
         logFilter:
-          type: boolean
           default: true
+          type: boolean
+        loggingAspect:
+          default: true
+          type: boolean
       type: object
     ProjectMetadata:
-      type: object
       properties:
         artifact:
           default: "poof"
@@ -105,3 +107,4 @@ components:
         group:
           default: "dev.pollito"
           type: string
+      type: object
