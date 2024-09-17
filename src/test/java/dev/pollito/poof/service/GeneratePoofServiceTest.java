@@ -45,43 +45,65 @@ class GeneratePoofServiceTest {
 
     try (ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(zipOutputStream.toByteArray()))) {
-      boolean pomXmlExists = false;
-      boolean appJavaExists = false;
-      boolean appTestsJavaExists = false;
-      boolean applicationYmlExists = false;
       String pomXmlContent = null;
+      String mainJavaAppFileContent = null;
+      String appTestFileContent = null;
+      String applicationYmlContent = null;
 
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
         String entryName = entry.getName();
 
         if (entryName.equals("pom.xml")) {
-          pomXmlExists = true;
           pomXmlContent = readZipEntryContent(zipInputStream);
         }
-        if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
-          appJavaExists = true;
-        }
-        if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
-          appTestsJavaExists = true;
-        }
+
+
         if (entryName.equals("src/main/resources/application.yml")) {
-          applicationYmlExists = true;
+          applicationYmlContent = readZipEntryContent(zipInputStream);
+        }
+        if (entryName.endsWith(".java")) {
+          String javaFileContent = readZipEntryContent(zipInputStream);
+          assertTrue(
+                  javaFileContent.startsWith("package dev.pollito.poof"),
+                  entryName + " should start with 'package dev.pollito.poof'");
+
+          if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
+            mainJavaAppFileContent = javaFileContent;
+          }
+
+          if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
+            appTestFileContent = javaFileContent;
+          }
         }
         zipInputStream.closeEntry();
       }
+      pomXmlAssertions(request, pomXmlContent);
+      mainJavaFileAssertions(mainJavaAppFileContent);
+      appTestFileAssertions(appTestFileContent);
+      applicationYmlAssertions(applicationYmlContent);
 
-      pomXmlAssertions(request, pomXmlExists, pomXmlContent);
-
-      assertTrue(appJavaExists, "PoofApplication.java file should exist");
-      assertTrue(appTestsJavaExists, "PoofApplicationTests.java file should exist");
-      assertTrue(applicationYmlExists, "application.yml file should exist");
     }
   }
 
+  private void applicationYmlAssertions(String applicationYmlContent) {
+    assertNotNull(applicationYmlContent);
+    assertTrue(applicationYmlContent.contains("name: poof"), "application.yml should contain the correct spring application name");
+  }
+
+  private void appTestFileAssertions(String appTestFileContent) {
+    assertNotNull(appTestFileContent);
+    assertTrue(appTestFileContent.contains("class PoofApplicationTests {"), "Main Java application test file should contain the correct class name");
+  }
+
+  private void mainJavaFileAssertions(String mainJavaAppFileContent) {
+    assertNotNull(mainJavaAppFileContent);
+    assertTrue(mainJavaAppFileContent.contains("public class PoofApplication {"), "Main Java application file should contain the correct class name");
+    assertTrue(mainJavaAppFileContent.contains("SpringApplication.run(PoofApplication.class, args);"), "Main Java application file should run the correct SpringApplication.run");
+  }
+
   private void pomXmlAssertions(
-      @NotNull GenerateRequest request, boolean pomXmlExists, String pomXmlContent) {
-    assertTrue(pomXmlExists, "pom.xml file should exist");
+          @NotNull GenerateRequest request, String pomXmlContent) {
     assertNotNull(pomXmlContent, "pom.xml content should not be null");
     assertTrue(
         pomXmlContent.contains("<groupId>dev.pollito</groupId>"),
