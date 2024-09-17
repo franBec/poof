@@ -54,23 +54,21 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         String zipEntryName =
             getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
         if (file.isDirectory()) {
-          addFileToZip(parentFolder, zipOutputStream, generateRequest, file, zipEntryName);
-        } else {
-          if ("pom.xml".equals(file.getName())) {
-            addPomXmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
-          } else if ("application.yml".equals(file.getName())) {
-            addApplicationYmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
-          } else if (file.getName().endsWith(".java")) {
-            addJavaFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
-          } else {
-            addFileToZip(file, zipEntryName, zipOutputStream);
-          }
+          addFolderToZip(parentFolder, zipOutputStream, generateRequest, file, zipEntryName);
+        } else if ("pom.xml".equals(file.getName())) {
+          addPomXmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
+        } else if ("application.yml".equals(file.getName())) {
+          addApplicationYmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
+        } else if (file.getName().endsWith(".java")) {
+          addJavaFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
+        } else{
+          addFileToZip(file, zipEntryName, zipOutputStream);
         }
       }
     }
   }
 
-  private void addFileToZip(
+  private void addFolderToZip(
       String parentFolder,
       ZipOutputStream zipOutputStream,
       GenerateRequest generateRequest,
