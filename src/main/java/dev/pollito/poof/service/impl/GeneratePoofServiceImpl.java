@@ -10,8 +10,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
@@ -50,7 +54,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
             getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
 
         if (file.isDirectory()) {
-          addFolderToZip(parentFolder, zipOutputStream, generateRequest, file, zipEntryName);
+          addFolderToZip(zipOutputStream, generateRequest, file, zipEntryName);
         } else if ("pom.xml".equals(file.getName())) {
           addPomXmlToZip(zipOutputStream, generateRequest, file, zipEntryName);
         } else if ("application.yml".equals(file.getName())) {
@@ -65,15 +69,10 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   private void addFolderToZip(
-      String parentFolder,
       ZipOutputStream zipOutputStream,
       GenerateRequest generateRequest,
       File file,
       String zipEntryName) {
-    if (isAspectFolder(file, parentFolder)
-        && Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
-      return;
-    }
     zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
   }
 
@@ -82,27 +81,34 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       @NotNull GenerateRequest generateRequest,
       File file,
       @NotNull String zipEntryName) {
-    if (zipEntryName.endsWith("config/WebConfig.java")
-        && Boolean.FALSE.equals(generateRequest.getOptions().getAllowCorsFromAnySource())) {
-      return;
-    }
-    if (zipEntryName.endsWith("controller/advice/GlobalControllerAdvice.java")
-        && Boolean.FALSE.equals(generateRequest.getOptions().getControllerAdvice())) {
-      return;
-    }
-    if (zipEntryName.endsWith("config/LogFilterConfig.java")
-        && Boolean.FALSE.equals(generateRequest.getOptions().getLogFilter())) {
-      return;
-    }
-    if (zipEntryName.endsWith("filter/LogFilter.java")
-        && Boolean.FALSE.equals(generateRequest.getOptions().getLogFilter())) {
-      return;
+    List<Entry<String, Boolean>> conditions =
+        Arrays.asList(
+            new SimpleEntry<>(
+                "aspect/LoggingAspect.java", generateRequest.getOptions().getLoggingAspect()),
+            new SimpleEntry<>(
+                "config/WebConfig.java", generateRequest.getOptions().getAllowCorsFromAnySource()),
+            new SimpleEntry<>(
+                "controller/advice/GlobalControllerAdvice.java",
+                generateRequest.getOptions().getControllerAdvice()),
+            new SimpleEntry<>(
+                "config/LogFilterConfig.java", generateRequest.getOptions().getLogFilter()),
+            new SimpleEntry<>(
+                "filter/LogFilter.java", generateRequest.getOptions().getLogFilter()));
+
+    for (Entry<String, Boolean> condition : conditions) {
+      if (skipFile(zipEntryName, condition.getKey(), condition.getValue())) {
+        return;
+      }
     }
     addFileWithReplacementsToZip(
         file,
         zipEntryName,
         zipOutputStream,
         javaReplacements(generateRequest.getProjectMetadata()));
+  }
+
+  private boolean skipFile(@NotNull String zipEntryName, String suffix, Boolean generateRequest) {
+    return zipEntryName.endsWith(suffix) && !generateRequest;
   }
 
   private void addApplicationYmlToZip(
@@ -124,11 +130,6 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       String zipEntryName) {
     addFileWithReplacementsToZip(
         file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
-  }
-
-  private boolean isAspectFolder(@NotNull File file, String parentFolder) {
-    return "aspect".equals(file.getName())
-        && parentFolder.startsWith(SRC_MAIN_JAVA_COM_EXAMPLE_DEMO);
   }
 
   private @NotNull Map<String, String> applicationYmlReplacements(
@@ -205,7 +206,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       @NotNull Map<String, String> replacements) {
     String content = Files.readString(file.toPath());
 
-    for (Map.Entry<String, String> entry : replacements.entrySet()) {
+    for (Entry<String, String> entry : replacements.entrySet()) {
       content = content.replace(entry.getKey(), entry.getValue());
     }
 
