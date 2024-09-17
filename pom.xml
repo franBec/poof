@@ -12,7 +12,7 @@
     <artifactId>poof</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>poof</name>
-    <description>poof</description>
+    <description>poof - Pollito Over Opinionated Framework</description>
     <url/>
     <licenses>
         <license/>
@@ -185,6 +185,37 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.16.0</version>
+                <executions>
+                    <execution>
+                        <id>pit-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>mutationCoverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>dev.pollito.poof.controller.*</param>
+                        <param>dev.pollito.poof.service.*</param>
+                        <param>dev.pollito.poof.util.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>dev.pollito.poof.*</param>
+                    </targetTests>
+                </configuration>
             </plugin>
         </plugins>
     </build>
