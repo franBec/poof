@@ -56,25 +56,38 @@ class GeneratePoofServiceTest {
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
         String entryName = entry.getName();
-        assertTrue(expectedEntryNames.containsKey(entryName), "Unexpected file: " + entryName);
+        checkFileIsExpected(expectedEntryNames, entryName);
 
         if (entryName.equals("pom.xml")) {
           pomXmlAssertions(request, readZipEntryContent(zipInputStream));
-        }
-
-        if (entryName.equals("src/main/resources/application.yml")) {
+        } else if (entryName.equals("src/main/resources/application.yml")) {
           applicationYmlAssertions(readZipEntryContent(zipInputStream));
-        }
-        if (entryName.endsWith(".java")) {
+        } else if (entryName.endsWith(".java")) {
           javaFilesAssertions(request, entryName, readZipEntryContent(zipInputStream));
+        } else {
+          checkFileIsNotEmpty(entryName, readZipEntryContent(zipInputStream));
         }
         expectedEntryNames.put(entryName, true);
         zipInputStream.closeEntry();
       }
 
-      expectedEntryNames.forEach(
-          (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
+      checkAllExpectedFilesWereCopied(expectedEntryNames);
     }
+  }
+
+  private void checkAllExpectedFilesWereCopied(
+      @NotNull Map<String, Boolean> expectedEntryNames) {
+    expectedEntryNames.forEach(
+        (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
+  }
+
+  private void checkFileIsExpected(
+      @NotNull Map<String, Boolean> expectedEntryNames, String entryName) {
+    assertTrue(expectedEntryNames.containsKey(entryName), "Unexpected file: " + entryName);
+  }
+
+  private void checkFileIsNotEmpty(String entryName, @NotNull String fileContent) {
+    assertFalse(fileContent.trim().isEmpty(), entryName + " should not be empty");
   }
 
   private void javaFilesAssertions(
