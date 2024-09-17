@@ -107,7 +107,8 @@ class GeneratePoofServiceTest {
     }
   }
 
-  private void checkParentDirectory(Map<String, Boolean> directoryHasFiles, @NotNull String entryName) {
+  private void checkParentDirectory(
+      Map<String, Boolean> directoryHasFiles, @NotNull String entryName) {
     String parentDir =
         entryName.contains("/") ? entryName.substring(0, entryName.lastIndexOf('/') + 1) : "";
     if (!parentDir.isEmpty()) {

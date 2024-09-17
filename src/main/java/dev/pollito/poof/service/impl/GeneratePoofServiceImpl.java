@@ -45,7 +45,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void zipFolder(
+  private static void zipFolder(
       @NotNull File folder,
       String parentFolder,
       ZipOutputStream zipOutputStream,
@@ -73,7 +73,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void cleanEmptyFolders(Path folderPath) {
+  private static void cleanEmptyFolders(Path folderPath) {
     if (Objects.isNull(folderPath) || !Files.isDirectory(folderPath)) {
       return;
     }
@@ -94,7 +94,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     }
   }
 
-  private void addFolderToZip(
+  private static void addFolderToZip(
       ZipOutputStream zipOutputStream,
       GenerateRequest generateRequest,
       File file,
@@ -102,7 +102,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
   }
 
-  private void addJavaFileToZip(
+  private static void addJavaFileToZip(
       ZipOutputStream zipOutputStream,
       @NotNull GenerateRequest generateRequest,
       File file,
@@ -133,11 +133,12 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         javaReplacements(generateRequest.getProjectMetadata()));
   }
 
-  private boolean skipFile(@NotNull String zipEntryName, String suffix, Boolean generateRequest) {
+  private static boolean skipFile(
+      @NotNull String zipEntryName, String suffix, Boolean generateRequest) {
     return zipEntryName.endsWith(suffix) && !generateRequest;
   }
 
-  private void addApplicationYmlToZip(
+  private static void addApplicationYmlToZip(
       ZipOutputStream zipOutputStream,
       @NotNull GenerateRequest generateRequest,
       File file,
@@ -149,7 +150,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         applicationYmlReplacements(generateRequest.getProjectMetadata()));
   }
 
-  private void addPomXmlToZip(
+  private static void addPomXmlToZip(
       ZipOutputStream zipOutputStream,
       GenerateRequest generateRequest,
       File file,
@@ -158,7 +159,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
         file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
   }
 
-  private @NotNull Map<String, String> applicationYmlReplacements(
+  private static @NotNull Map<String, String> applicationYmlReplacements(
       @NotNull ProjectMetadata projectMetadata) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("#artifact", projectMetadata.getArtifact());
@@ -166,7 +167,8 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     return replacements;
   }
 
-  private @NotNull Map<String, String> javaReplacements(@NotNull ProjectMetadata projectMetadata) {
+  private static @NotNull Map<String, String> javaReplacements(
+      @NotNull ProjectMetadata projectMetadata) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("/*group*/", projectMetadata.getGroup());
     replacements.put("/*artifact*/", projectMetadata.getArtifact());
@@ -175,7 +177,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     return replacements;
   }
 
-  private @NotNull Map<String, String> pomXmlReplacements(
+  private static @NotNull Map<String, String> pomXmlReplacements(
       @NotNull GenerateRequest generateRequest) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
@@ -190,7 +192,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     return replacements;
   }
 
-  private @NotNull String getNewZipEntryName(
+  private static @NotNull String getNewZipEntryName(
       @NotNull String parentFolder, File file, @NotNull ProjectMetadata projectMetadata) {
     String groupPath = projectMetadata.getGroup().replace('.', '/');
     String artifact = projectMetadata.getArtifact();
@@ -225,7 +227,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void addFileWithReplacementsToZip(
+  private static void addFileWithReplacementsToZip(
       @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
@@ -242,7 +244,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void addFileToZip(
+  private static void addFileToZip(
       File file, String zipEntryName, @NotNull ZipOutputStream zipOutputStream) {
     try (FileInputStream fileInputStream = new FileInputStream(file)) {
       ZipEntry zipEntry = new ZipEntry(zipEntryName);
@@ -254,7 +256,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   @SneakyThrows
-  private void writeToFileStream(
+  private static void writeToFileStream(
       @NotNull FileInputStream fileInputStream, ZipOutputStream zipOutputStream) {
     byte[] buffer = new byte[1024];
     int length;

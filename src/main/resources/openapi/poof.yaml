@@ -56,7 +56,7 @@ components:
           type: string
         instance:
           description: The endpoint where the problem was encountered.
-          example: /generate
+          example: "/generate"
           type: string
         status:
           description: http status code
@@ -64,7 +64,7 @@ components:
           type: integer
         title:
           description: A short headline of the problem.
-          example: NoSuchElementException
+          example: "NoSuchElementException"
           type: string
         timestamp:
           description: ISO 8601 Date.
@@ -72,11 +72,11 @@ components:
           type: string
         trace:
           description: opentelemetry TraceID, a unique identifier.
-          example: 0c6a41e22fe6478cc391908406ca9b8d
+          example: "0c6a41e22fe6478cc391908406ca9b8d"
           type: string
         type:
           description: used to point the client to documentation where it is explained clearly what happened and why.
-          example: about:blank
+          example: "about:blank"
           type: string
       type: object
     GenerateRequest:
