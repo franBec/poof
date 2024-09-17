@@ -48,10 +48,8 @@ class GeneratePoofServiceTest {
 
     Map<String, Boolean> expectedEntryNames = buildExpectedEntryNamesMap(request);
 
-    ByteArrayOutputStream zipOutputStream = generatePoofService.generateFiles(request);
-
     try (ZipInputStream zipInputStream =
-        new ZipInputStream(new ByteArrayInputStream(zipOutputStream.toByteArray()))) {
+        new ZipInputStream(new ByteArrayInputStream(generatePoofService.generateFiles(request).toByteArray()))) {
 
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
@@ -123,7 +121,7 @@ class GeneratePoofServiceTest {
       expectedEntryNames.put("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java", false);
     }
     if (request.getOptions().getLogFilter()) {
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilter.java", false);
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilterConfig.java", false);
       expectedEntryNames.put("src/main/java/dev/pollito/poof/filter/LogFilter.java", false);
     }
     return expectedEntryNames;
