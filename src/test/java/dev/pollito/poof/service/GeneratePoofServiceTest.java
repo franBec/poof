@@ -87,12 +87,7 @@ class GeneratePoofServiceTest {
         if (entry.isDirectory()) {
           directoryHasFiles.put(entryName, false);
         } else {
-          String parentDir =
-              entryName.contains("/") ? entryName.substring(0, entryName.lastIndexOf('/') + 1) : "";
-          if (!parentDir.isEmpty()) {
-            directoryHasFiles.put(parentDir, true);
-          }
-
+          checkParentDirectory(directoryHasFiles, entryName);
           if (entryName.equals("pom.xml")) {
             pomXmlAssertions(request, readZipEntryContent(zipInputStream));
           } else if (entryName.equals("src/main/resources/application.yml")) {
@@ -109,6 +104,14 @@ class GeneratePoofServiceTest {
 
       checkAllExpectedFilesWereCopied(expectedEntryNames);
       checkNoEmptyDirectories(directoryHasFiles);
+    }
+  }
+
+  private void checkParentDirectory(Map<String, Boolean> directoryHasFiles, @NotNull String entryName) {
+    String parentDir =
+        entryName.contains("/") ? entryName.substring(0, entryName.lastIndexOf('/') + 1) : "";
+    if (!parentDir.isEmpty()) {
+      directoryHasFiles.put(parentDir, true);
     }
   }
 
