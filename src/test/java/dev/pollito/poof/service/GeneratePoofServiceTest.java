@@ -75,8 +75,7 @@ class GeneratePoofServiceTest {
     }
   }
 
-  private void checkAllExpectedFilesWereCopied(
-      @NotNull Map<String, Boolean> expectedEntryNames) {
+  private void checkAllExpectedFilesWereCopied(@NotNull Map<String, Boolean> expectedEntryNames) {
     expectedEntryNames.forEach(
         (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
   }
@@ -111,9 +110,6 @@ class GeneratePoofServiceTest {
   private Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull GenerateRequest request) {
     Map<String, Boolean> expectedEntryNames = new HashMap<>();
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
-    if (request.getOptions().getLoggingAspect()) {
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java", false);
-    }
     expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
     expectedEntryNames.put("src/main/resources/application.yml", false);
     expectedEntryNames.put("src/test/java/dev/pollito/poof/PoofApplicationTests.java", false);
@@ -122,6 +118,14 @@ class GeneratePoofServiceTest {
     expectedEntryNames.put("mvnw", false);
     expectedEntryNames.put("mvnw.cmd", false);
     expectedEntryNames.put("pom.xml", false);
+
+    if (request.getOptions().getLoggingAspect()) {
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java", false);
+    }
+    if (request.getOptions().getLogFilter()) {
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilter.java", false);
+      expectedEntryNames.put("src/main/java/dev/pollito/poof/filter/LogFilter.java", false);
+    }
     return expectedEntryNames;
   }
 

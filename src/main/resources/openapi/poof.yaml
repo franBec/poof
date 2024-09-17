@@ -89,6 +89,9 @@ components:
         loggingAspect:
           type: boolean
           default: true
+        logFilter:
+          type: boolean
+          default: true
       type: object
     ProjectMetadata:
       type: object
