@@ -52,11 +52,6 @@ class GeneratePoofServiceTest {
 
     try (ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(zipOutputStream.toByteArray()))) {
-      String pomXmlContent = null;
-      String mainJavaAppFileContent = null;
-      String appTestFileContent = null;
-      String applicationYmlContent = null;
-      String aspectContent = null;
 
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
@@ -64,39 +59,38 @@ class GeneratePoofServiceTest {
         assertTrue(expectedEntryNames.containsKey(entryName), "Unexpected file: " + entryName);
 
         if (entryName.equals("pom.xml")) {
-          pomXmlContent = readZipEntryContent(zipInputStream);
+          pomXmlAssertions(request, readZipEntryContent(zipInputStream));
         }
 
         if (entryName.equals("src/main/resources/application.yml")) {
-          applicationYmlContent = readZipEntryContent(zipInputStream);
+          applicationYmlAssertions(readZipEntryContent(zipInputStream));
         }
         if (entryName.endsWith(".java")) {
-          String javaFileContent = readZipEntryContent(zipInputStream);
-          assertTrue(
-              javaFileContent.startsWith("package dev.pollito.poof"),
-              entryName + " should start with 'package dev.pollito.poof'");
-
-          if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
-            mainJavaAppFileContent = javaFileContent;
-          }
-          if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
-            appTestFileContent = javaFileContent;
-          }
-          if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
-            aspectContent = javaFileContent;
-          }
+          javaFilesAssertions(request, entryName, readZipEntryContent(zipInputStream));
         }
         expectedEntryNames.put(entryName, true);
         zipInputStream.closeEntry();
       }
-      pomXmlAssertions(request, pomXmlContent);
-      mainJavaFileAssertions(mainJavaAppFileContent);
-      appTestFileAssertions(appTestFileContent);
-      applicationYmlAssertions(applicationYmlContent);
-      aspectAssertions(request, aspectContent);
 
       expectedEntryNames.forEach(
           (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
+    }
+  }
+
+  private void javaFilesAssertions(
+      GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
+    assertTrue(
+        javaFileContent.startsWith("package dev.pollito.poof"),
+        entryName + " should start with 'package dev.pollito.poof'");
+
+    if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
+      mainJavaFileAssertions(javaFileContent);
+    }
+    if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
+      appTestFileAssertions(javaFileContent);
+    }
+    if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
+      aspectAssertions(request, javaFileContent);
     }
   }
 
