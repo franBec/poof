@@ -42,8 +42,10 @@ components:
         consumerContracts:
           type: array
           items:
+            description: base64 OAS yaml file
             type: string
         providerContract:
+          description: base64 OAS yaml file
           type: string
       required:
         - providerContract

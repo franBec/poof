@@ -5,6 +5,7 @@ import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +35,35 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     File baseFolder = new ClassPathResource("baseTemplate").getFile();
+
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       zipFolder(baseFolder, "", zipOutputStream, generateRequest);
+      addBase64FileToZip(generateRequest, zipOutputStream);
     }
+
     return byteArrayOutputStream;
+  }
+
+  @SneakyThrows
+  private static void addBase64FileToZip(
+      @NotNull GenerateRequest generateRequest, ZipOutputStream zipOutputStream) {
+    String base64File = generateRequest.getContracts().getProviderContract();
+    if (base64File != null && !base64File.isEmpty()) {
+      try (ByteArrayInputStream inputStream =
+          new ByteArrayInputStream(Base64.getDecoder().decode(base64File))) {
+        zipOutputStream.putNextEntry(
+            new ZipEntry(
+                "src/main/resources/openapi/"
+                    + generateRequest.getProjectMetadata().getArtifact()
+                    + ".yaml"));
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = inputStream.read(buffer)) > 0) {
+          zipOutputStream.write(buffer, 0, len);
+        }
+        zipOutputStream.closeEntry();
+      }
+    }
   }
 
   @SneakyThrows
