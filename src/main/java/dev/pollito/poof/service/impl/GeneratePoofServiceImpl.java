@@ -9,17 +9,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
@@ -40,7 +36,6 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       zipFolder(baseFolder, "", zipOutputStream, generateRequest);
     }
-    cleanEmptyFolders(baseFolder.toPath());
     return byteArrayOutputStream;
   }
 
@@ -69,28 +64,6 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
           addFileToZip(file, zipEntryName, zipOutputStream);
         }
       }
-    }
-  }
-
-  @SneakyThrows
-  private static void cleanEmptyFolders(Path folderPath) {
-    if (Objects.isNull(folderPath) || !Files.isDirectory(folderPath)) {
-      return;
-    }
-
-    try (Stream<Path> paths = Files.list(folderPath)) {
-      List<Path> files = paths.toList();
-      for (Path path : files) {
-        if (Files.isDirectory(path)) {
-          cleanEmptyFolders(path);
-        }
-      }
-    }
-
-    try {
-      Files.delete(folderPath);
-    } catch (DirectoryNotEmptyException ignore) {
-      // ignore this exception
     }
   }
 

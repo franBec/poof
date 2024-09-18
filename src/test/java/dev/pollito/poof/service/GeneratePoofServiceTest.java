@@ -73,7 +73,6 @@ class GeneratePoofServiceTest {
             .options(options);
 
     Map<String, Boolean> expectedEntryNames = buildExpectedEntryNamesMap(request);
-    Map<String, Boolean> directoryHasFiles = new HashMap<>();
 
     try (ZipInputStream zipInputStream =
         new ZipInputStream(
@@ -84,41 +83,20 @@ class GeneratePoofServiceTest {
         String entryName = entry.getName();
         checkFileIsExpected(expectedEntryNames, entryName);
 
-        if (entry.isDirectory()) {
-          directoryHasFiles.put(entryName, false);
+        if (entryName.equals("pom.xml")) {
+          pomXmlAssertions(request, readZipEntryContent(zipInputStream));
+        } else if (entryName.equals("src/main/resources/application.yml")) {
+          applicationYmlAssertions(readZipEntryContent(zipInputStream));
+        } else if (entryName.endsWith(".java")) {
+          javaFilesAssertions(request, entryName, readZipEntryContent(zipInputStream));
         } else {
-          checkParentDirectory(directoryHasFiles, entryName);
-          if (entryName.equals("pom.xml")) {
-            pomXmlAssertions(request, readZipEntryContent(zipInputStream));
-          } else if (entryName.equals("src/main/resources/application.yml")) {
-            applicationYmlAssertions(readZipEntryContent(zipInputStream));
-          } else if (entryName.endsWith(".java")) {
-            javaFilesAssertions(request, entryName, readZipEntryContent(zipInputStream));
-          } else {
-            checkFileIsNotEmpty(entryName, readZipEntryContent(zipInputStream));
-          }
+          checkFileIsNotEmpty(entryName, readZipEntryContent(zipInputStream));
         }
         expectedEntryNames.put(entryName, true);
         zipInputStream.closeEntry();
       }
 
       checkAllExpectedFilesWereCopied(expectedEntryNames);
-      checkNoEmptyDirectories(directoryHasFiles);
-    }
-  }
-
-  private void checkParentDirectory(
-      Map<String, Boolean> directoryHasFiles, @NotNull String entryName) {
-    String parentDir =
-        entryName.contains("/") ? entryName.substring(0, entryName.lastIndexOf('/') + 1) : "";
-    if (!parentDir.isEmpty()) {
-      directoryHasFiles.put(parentDir, true);
-    }
-  }
-
-  private void checkNoEmptyDirectories(@NotNull Map<String, Boolean> directoryHasFiles) {
-    for (Map.Entry<String, Boolean> entry : directoryHasFiles.entrySet()) {
-      assertTrue(entry.getValue(), "Directory " + entry.getKey() + " is empty but should not be.");
     }
   }
 
