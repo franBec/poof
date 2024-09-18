@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
@@ -48,7 +49,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   private static void addBase64FileToZip(
       @NotNull GenerateRequest generateRequest, ZipOutputStream zipOutputStream) {
     String base64File = generateRequest.getContracts().getProviderContract();
-    if (base64File != null && !base64File.isEmpty()) {
+    if (Objects.nonNull(base64File) && !base64File.isEmpty()) {
       try (ByteArrayInputStream inputStream =
           new ByteArrayInputStream(Base64.getDecoder().decode(base64File))) {
         zipOutputStream.putNextEntry(
@@ -74,7 +75,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       GenerateRequest generateRequest) {
     File[] files = folder.listFiles();
 
-    if (files != null) {
+    if (Objects.nonNull(files)) {
       for (File file : files) {
         String zipEntryName =
             getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
