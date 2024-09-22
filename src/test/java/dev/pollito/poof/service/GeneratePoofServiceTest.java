@@ -228,9 +228,7 @@ class GeneratePoofServiceTest {
       assertTrue(
           pomXmlContent.contains(aspectjArtifactId),
           "pom.xml should contain artifactId org.aspectj");
-      assertTrue(
-              pomXmlContent.contains(aspectjMarker),
-              "pom.xml should contain aspectj comment");
+      assertTrue(pomXmlContent.contains(aspectjMarker), "pom.xml should contain aspectj comment");
     } else {
       assertFalse(
           pomXmlContent.contains(aspectjGroupId), "pom.xml should not contain groupId org.aspectj");
@@ -238,8 +236,7 @@ class GeneratePoofServiceTest {
           pomXmlContent.contains(aspectjArtifactId),
           "pom.xml should not contain artifactId org.aspectj");
       assertFalse(
-              pomXmlContent.contains(aspectjMarker),
-              "pom.xml should not contain aspectj comment");
+          pomXmlContent.contains(aspectjMarker), "pom.xml should not contain aspectj comment");
     }
     assertTrue(
         pomXmlContent.contains("<id>provider generation - poof.yaml</id>"),
