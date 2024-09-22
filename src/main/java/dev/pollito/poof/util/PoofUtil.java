@@ -168,6 +168,9 @@ public class PoofUtil {
     if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
       replacements.put(extractTextBetweenMarkers(file, "<!--aspectj-->"), "");
     }
+    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
+      replacements.put(extractTextBetweenMarkers(file, "<!--consumer dependencies-->"), "");
+    }
 
     return replacements;
   }
