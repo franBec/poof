@@ -219,14 +219,27 @@ class GeneratePoofServiceTest {
         pomXmlContent.contains(
             "<description>poof - Pollito Over Opinionated Framework</description>"),
         "pom.xml should contain the correct <description>");
-    String aspectDependency =
-        "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>";
+    String aspectjGroupId = "<groupId>org.aspectj</groupId>";
+    String aspectjArtifactId = "<groupId>org.aspectj</groupId>";
+    String aspectjMarker = "<!--aspectj-->";
     if (request.getOptions().getLoggingAspect()) {
       assertTrue(
-          pomXmlContent.contains(aspectDependency), "pom.xml should contain aspect dependency");
+          pomXmlContent.contains(aspectjGroupId), "pom.xml should contain groupId org.aspectj");
+      assertTrue(
+          pomXmlContent.contains(aspectjArtifactId),
+          "pom.xml should contain artifactId org.aspectj");
+      assertTrue(
+              pomXmlContent.contains(aspectjMarker),
+              "pom.xml should contain aspectj comment");
     } else {
       assertFalse(
-          pomXmlContent.contains(aspectDependency), "pom.xml should not contain aspect dependency");
+          pomXmlContent.contains(aspectjGroupId), "pom.xml should not contain groupId org.aspectj");
+      assertFalse(
+          pomXmlContent.contains(aspectjArtifactId),
+          "pom.xml should not contain artifactId org.aspectj");
+      assertFalse(
+              pomXmlContent.contains(aspectjMarker),
+              "pom.xml should not contain aspectj comment");
     }
     assertTrue(
         pomXmlContent.contains("<id>provider generation - poof.yaml</id>"),

@@ -157,7 +157,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
       File file,
       String zipEntryName) {
     addFileWithReplacementsToZip(
-        file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
+        file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest, file));
   }
 
   private static @NotNull Map<String, String> applicationYmlReplacements(
@@ -179,18 +179,28 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
   }
 
   private static @NotNull Map<String, String> pomXmlReplacements(
-      @NotNull GenerateRequest generateRequest) {
+      @NotNull GenerateRequest generateRequest, File file) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
     replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
     replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
     if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
-      replacements.put(
-          "\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.aspectj</groupId>\r\n\t\t\t<artifactId>aspectjtools</artifactId>\r\n\t\t\t<version>1.9.22.1</version>\r\n\t\t</dependency>",
-          "");
+      replacements.put(extractTextBetweenMarkers(file, "<!--aspectj-->"), "");
     }
 
     return replacements;
+  }
+
+  @SneakyThrows
+  private static @NotNull String extractTextBetweenMarkers(
+      @NotNull File file, @NotNull String marker) {
+    String fileContent = Files.readString(file.toPath());
+
+    int markerLength = marker.length();
+    int startIndex = fileContent.indexOf(marker);
+    int endIndex = fileContent.indexOf(marker, startIndex + markerLength);
+
+    return fileContent.substring(startIndex, endIndex + markerLength).trim();
   }
 
   private static @NotNull String getNewZipEntryName(
