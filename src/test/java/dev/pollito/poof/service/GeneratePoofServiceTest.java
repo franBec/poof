@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.Contracts;
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.Options;
@@ -50,8 +51,10 @@ class GeneratePoofServiceTest {
   private static Stream<Arguments> methodSourceProvider() {
     List<Arguments> argumentsList = new ArrayList<>();
 
-    List<List<String>> consumerContractsList =
-        List.of(List.of(), List.of(BASE_64_WEATHERSTACK_YAML));
+    List<List<Contract>> consumerContractsList =
+        List.of(
+            List.of(),
+            List.of(new Contract().content(BASE_64_WEATHERSTACK_YAML).name("weatherstack")));
 
     for (boolean allowCors : new boolean[] {true, false}) {
       for (boolean controllerAdvice : new boolean[] {true, false}) {
@@ -64,7 +67,7 @@ class GeneratePoofServiceTest {
                     .logFilter(logFilter)
                     .loggingAspect(loggingAspect);
 
-            for (List<String> consumerContracts : consumerContractsList) {
+            for (List<Contract> consumerContracts : consumerContractsList) {
               argumentsList.add(Arguments.of(options, consumerContracts));
             }
           }
@@ -78,12 +81,12 @@ class GeneratePoofServiceTest {
   @ParameterizedTest
   @MethodSource("methodSourceProvider")
   @SneakyThrows
-  void generatedZipContainsExpectedFiles(Options options, List<String> consumerContracts) {
+  void generatedZipContainsExpectedFiles(Options options, List<Contract> consumerContracts) {
     GenerateRequest request =
         new GenerateRequest()
             .contracts(
                 new Contracts()
-                    .providerContract(BASE_64_PETSORE_YAML)
+                    .providerContract(new Contract().content(BASE_64_PETSORE_YAML).name("petstore"))
                     .consumerContracts(consumerContracts))
             .projectMetadata(
                 new ProjectMetadata()
@@ -157,7 +160,7 @@ class GeneratePoofServiceTest {
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
     expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
     expectedEntryNames.put("src/main/resources/application.yml", false);
-    expectedEntryNames.put("src/main/resources/openapi/poof.yaml", false);
+    expectedEntryNames.put("src/main/resources/openapi/petstore.yaml", false);
     expectedEntryNames.put("src/test/java/dev/pollito/poof/PoofApplicationTests.java", false);
     expectedEntryNames.put(".gitignore", false);
     expectedEntryNames.put("HELP.md", false);
@@ -240,7 +243,7 @@ class GeneratePoofServiceTest {
             "<artifactId>junit-jupiter-api</artifactId>",
             "<artifactId>feign-gson</artifactId>");
     boolean expected = !request.getContracts().getConsumerContracts().isEmpty();
-    
+
     dependencies.forEach(
         dependency ->
             assertEquals(

@@ -37,16 +37,23 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Contract:
+      properties:
+        content:
+          description: base64 OAS yaml file content
+          type: string
+        name:
+          description: name of the file (names are lost when file converted to base64)
+          type: string
+      type: object
     Contracts:
       properties:
         consumerContracts:
           type: array
           items:
-            description: base64 OAS yaml file
-            type: string
+            $ref: '#/components/schemas/Contract'
         providerContract:
-          description: base64 OAS yaml file
-          type: string
+          $ref: '#/components/schemas/Contract'
       required:
         - providerContract
       type: object

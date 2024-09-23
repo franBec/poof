@@ -15,14 +15,14 @@ public class Base64Util {
   @SneakyThrows
   public static void addBase64FileToZip(
       @NotNull GenerateRequest generateRequest, ZipOutputStream zipOutputStream) {
-    String base64File = generateRequest.getContracts().getProviderContract();
+    String base64File = generateRequest.getContracts().getProviderContract().getContent();
     if (Objects.nonNull(base64File) && !base64File.isEmpty()) {
       try (ByteArrayInputStream inputStream =
           new ByteArrayInputStream(Base64.getDecoder().decode(base64File))) {
         zipOutputStream.putNextEntry(
             new ZipEntry(
                 "src/main/resources/openapi/"
-                    + generateRequest.getProjectMetadata().getArtifact()
+                    + generateRequest.getContracts().getProviderContract().getName()
                     + ".yaml"));
         byte[] buffer = new byte[1024];
         int len;
