@@ -1,7 +1,6 @@
 package dev.pollito.poof.util;
 
 import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
-import static dev.pollito.poof.util.DependencyUtil.CONSUMER_EXECUTION_TEMPLATE;
 
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
@@ -114,7 +113,8 @@ public class PoofUtil {
       GenerateRequest generateRequest,
       File file,
       String zipEntryName) {
-    addFileToZip(file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest, file));
+    addFileToZip(
+        file, zipEntryName, zipOutputStream, PomXmlUtil.pomXmlReplacements(generateRequest));
   }
 
   private static @NotNull Map<String, String> applicationYmlReplacements(
@@ -133,50 +133,6 @@ public class PoofUtil {
     replacements.put("/*Artifact*/", capitalizeFirstLetter(projectMetadata.getArtifact()));
 
     return replacements;
-  }
-
-  private static @NotNull Map<String, String> pomXmlReplacements(
-      @NotNull GenerateRequest generateRequest, File pomXml) {
-    Map<String, String> replacements = new HashMap<>();
-    replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
-    replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
-    replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
-    if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
-      replacements.put(extractTextBetweenMarkers(pomXml, "<!--aspectj-->"), "");
-    }
-    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
-      replacements.put(extractTextBetweenMarkers(pomXml, "<!--consumer dependencies-->"), "");
-    }
-    replacements.put("<!--consumer generation-->", consumerGenerationReplacement(generateRequest));
-
-    return replacements;
-  }
-
-  private static @NotNull String consumerGenerationReplacement(
-      @NotNull GenerateRequest generateRequest) {
-    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
-      return "";
-    }
-
-    String name = "sample name";
-    String uri = "com.example";
-
-    return CONSUMER_EXECUTION_TEMPLATE
-        .replace("<!--name-->", name)
-        .replace("<!--apiPackage-->", uri + ".api")
-        .replace("<!--modelPackage-->", uri + ".models");
-  }
-
-  @SneakyThrows
-  private static @NotNull String extractTextBetweenMarkers(
-      @NotNull File file, @NotNull String marker) {
-    String fileContent = Files.readString(file.toPath());
-
-    int markerLength = marker.length();
-    int startIndex = fileContent.indexOf(marker);
-    int endIndex = fileContent.indexOf(marker, startIndex + markerLength);
-
-    return fileContent.substring(startIndex, endIndex + markerLength).trim();
   }
 
   private static @NotNull String getNewZipEntryName(

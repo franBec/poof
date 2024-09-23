@@ -239,13 +239,8 @@ class GeneratePoofServiceTest {
             "<artifactId>jsr305</artifactId>",
             "<artifactId>junit-jupiter-api</artifactId>",
             "<artifactId>feign-gson</artifactId>");
-    String marker = "<!--consumer dependencies-->";
     boolean expected = !request.getContracts().getConsumerContracts().isEmpty();
-
-    assertEquals(
-        expected,
-        pomXmlContent.contains(marker),
-        "pom.xml should " + (expected ? "" : "not ") + "contain consumer dependencies comment");
+    
     dependencies.forEach(
         dependency ->
             assertEquals(
@@ -273,17 +268,12 @@ class GeneratePoofServiceTest {
   private void pomXmlAspectjAssertions(
       @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
     String aspectjArtifactId = "<artifactId>aspectjtools</artifactId>";
-    String marker = "<!--aspectj-->";
     boolean expected = request.getOptions().getLoggingAspect();
 
     assertEquals(
         expected,
         pomXmlContent.contains(aspectjArtifactId),
         "pom.xml should " + (expected ? "" : "not ") + "contain artifactId org.aspectj");
-    assertEquals(
-        expected,
-        pomXmlContent.contains(marker),
-        "pom.xml should " + (expected ? "" : "not ") + "contain aspectj comment");
   }
 
   private void pomXmlBasicInfoAssertions(@NotNull String pomXmlContent) {
