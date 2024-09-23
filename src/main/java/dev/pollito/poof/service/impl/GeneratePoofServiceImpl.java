@@ -1,6 +1,6 @@
 package dev.pollito.poof.service.impl;
 
-import static dev.pollito.poof.util.PoofUtil.addBase64FileToZip;
+import static dev.pollito.poof.util.Base64Util.addBase64FileToZip;
 import static dev.pollito.poof.util.PoofUtil.zipFolder;
 
 import dev.pollito.poof.model.GenerateRequest;

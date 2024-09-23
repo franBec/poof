@@ -1,17 +1,17 @@
 package dev.pollito.poof.util;
 
 import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
+import static dev.pollito.poof.util.DependencyUtil.CONSUMER_EXECUTION_TEMPLATE;
 
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
-import java.io.ByteArrayInputStream;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,28 +25,6 @@ public class PoofUtil {
   private PoofUtil() {}
 
   public static final String SRC_MAIN_JAVA_COM_EXAMPLE_DEMO = "src/main/java/com/example/demo";
-
-  @SneakyThrows
-  public static void addBase64FileToZip(
-      @NotNull GenerateRequest generateRequest, ZipOutputStream zipOutputStream) {
-    String base64File = generateRequest.getContracts().getProviderContract();
-    if (Objects.nonNull(base64File) && !base64File.isEmpty()) {
-      try (ByteArrayInputStream inputStream =
-          new ByteArrayInputStream(Base64.getDecoder().decode(base64File))) {
-        zipOutputStream.putNextEntry(
-            new ZipEntry(
-                "src/main/resources/openapi/"
-                    + generateRequest.getProjectMetadata().getArtifact()
-                    + ".yaml"));
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = inputStream.read(buffer)) > 0) {
-          zipOutputStream.write(buffer, 0, len);
-        }
-        zipOutputStream.closeEntry();
-      }
-    }
-  }
 
   @SneakyThrows
   public static void zipFolder(
@@ -159,19 +137,34 @@ public class PoofUtil {
   }
 
   private static @NotNull Map<String, String> pomXmlReplacements(
-      @NotNull GenerateRequest generateRequest, File file) {
+      @NotNull GenerateRequest generateRequest, File pomXml) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
     replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
     replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
     if (Boolean.FALSE.equals(generateRequest.getOptions().getLoggingAspect())) {
-      replacements.put(extractTextBetweenMarkers(file, "<!--aspectj-->"), "");
+      replacements.put(extractTextBetweenMarkers(pomXml, "<!--aspectj-->"), "");
     }
     if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
-      replacements.put(extractTextBetweenMarkers(file, "<!--consumer dependencies-->"), "");
+      replacements.put(extractTextBetweenMarkers(pomXml, "<!--consumer dependencies-->"), "");
     }
+    replacements.put("<!--consumer generation-->", consumerGenerationReplacement(generateRequest));
 
     return replacements;
+  }
+
+  private static @NotNull String consumerGenerationReplacement(@NotNull GenerateRequest generateRequest) {
+    if(generateRequest.getContracts().getConsumerContracts().isEmpty()){
+      return "";
+    }
+
+    String name = "sample name";
+    String uri = "com.example";
+
+    return CONSUMER_EXECUTION_TEMPLATE
+            .replace("<!--name-->",name)
+            .replace("<!--apiPackage-->", uri+".api")
+            .replace("<!--modelPackage-->", uri+".models");
   }
 
   @SneakyThrows
