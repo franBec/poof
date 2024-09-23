@@ -222,8 +222,7 @@
 								<useEnumCaseInsensitive>true</useEnumCaseInsensitive>
 							</configOptions>
 						</configuration>
-					</execution>
-					<!--consumer generation-->
+					</execution><!--consumer generation-->
 				</executions>
 			</plugin>
 		</plugins>
