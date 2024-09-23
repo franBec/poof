@@ -51,9 +51,7 @@ class GeneratePoofServiceTest {
     List<Arguments> argumentsList = new ArrayList<>();
 
     List<List<String>> consumerContractsList =
-        List.of(
-            List.of(),
-            List.of(BASE_64_WEATHERSTACK_YAML));
+        List.of(List.of(), List.of(BASE_64_WEATHERSTACK_YAML));
 
     for (boolean allowCors : new boolean[] {true, false}) {
       for (boolean controllerAdvice : new boolean[] {true, false}) {

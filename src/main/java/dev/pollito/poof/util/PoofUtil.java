@@ -108,7 +108,7 @@ public class PoofUtil {
         return;
       }
     }
-    addFileWithReplacementsToZip(
+    addFileToZip(
         file,
         zipEntryName,
         zipOutputStream,
@@ -125,7 +125,7 @@ public class PoofUtil {
       @NotNull GenerateRequest generateRequest,
       File file,
       String zipEntryName) {
-    addFileWithReplacementsToZip(
+    addFileToZip(
         file,
         zipEntryName,
         zipOutputStream,
@@ -137,8 +137,7 @@ public class PoofUtil {
       GenerateRequest generateRequest,
       File file,
       String zipEntryName) {
-    addFileWithReplacementsToZip(
-        file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest, file));
+    addFileToZip(file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest, file));
   }
 
   private static @NotNull Map<String, String> applicationYmlReplacements(
@@ -222,7 +221,19 @@ public class PoofUtil {
   }
 
   @SneakyThrows
-  private static void addFileWithReplacementsToZip(
+  private static void addFileToZip(
+      File file, String zipEntryName, @NotNull ZipOutputStream zipOutputStream) {
+    try (FileInputStream fileInputStream = new FileInputStream(file)) {
+      ZipEntry zipEntry = new ZipEntry(zipEntryName);
+      zipOutputStream.putNextEntry(zipEntry);
+
+      writeToFileStream(fileInputStream, zipOutputStream);
+      zipOutputStream.closeEntry();
+    }
+  }
+
+  @SneakyThrows
+  private static void addFileToZip(
       @NotNull File file,
       String zipEntryName,
       @NotNull ZipOutputStream zipOutputStream,
@@ -236,18 +247,6 @@ public class PoofUtil {
     zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
     zipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
     zipOutputStream.closeEntry();
-  }
-
-  @SneakyThrows
-  private static void addFileToZip(
-      File file, String zipEntryName, @NotNull ZipOutputStream zipOutputStream) {
-    try (FileInputStream fileInputStream = new FileInputStream(file)) {
-      ZipEntry zipEntry = new ZipEntry(zipEntryName);
-      zipOutputStream.putNextEntry(zipEntry);
-
-      writeToFileStream(fileInputStream, zipOutputStream);
-      zipOutputStream.closeEntry();
-    }
   }
 
   @SneakyThrows
