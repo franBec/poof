@@ -5,7 +5,6 @@ import static dev.pollito.poof.util.DependencyUtil.CONSUMER_EXECUTION_TEMPLATE;
 
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
@@ -153,8 +152,9 @@ public class PoofUtil {
     return replacements;
   }
 
-  private static @NotNull String consumerGenerationReplacement(@NotNull GenerateRequest generateRequest) {
-    if(generateRequest.getContracts().getConsumerContracts().isEmpty()){
+  private static @NotNull String consumerGenerationReplacement(
+      @NotNull GenerateRequest generateRequest) {
+    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
       return "";
     }
 
@@ -162,9 +162,9 @@ public class PoofUtil {
     String uri = "com.example";
 
     return CONSUMER_EXECUTION_TEMPLATE
-            .replace("<!--name-->",name)
-            .replace("<!--apiPackage-->", uri+".api")
-            .replace("<!--modelPackage-->", uri+".models");
+        .replace("<!--name-->", name)
+        .replace("<!--apiPackage-->", uri + ".api")
+        .replace("<!--modelPackage-->", uri + ".models");
   }
 
   @SneakyThrows
