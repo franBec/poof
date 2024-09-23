@@ -1,6 +1,6 @@
 package dev.pollito.poof.service.impl;
 
-import static dev.pollito.poof.util.Base64Util.addBase64FileToZip;
+import static dev.pollito.poof.util.Base64Util.addBase64FilesToZip;
 import static dev.pollito.poof.util.PoofUtil.zipFolder;
 
 import dev.pollito.poof.model.GenerateRequest;
@@ -23,7 +23,7 @@ public class GeneratePoofServiceImpl implements GeneratePoofService {
 
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
       zipFolder(baseFolder, "", zipOutputStream, generateRequest);
-      addBase64FileToZip(generateRequest, zipOutputStream);
+      addBase64FilesToZip(generateRequest, zipOutputStream);
     }
 
     return byteArrayOutputStream;

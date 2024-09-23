@@ -15,7 +15,7 @@ public class Base64Util {
   private Base64Util() {}
 
   @SneakyThrows
-  public static void addBase64FileToZip(
+  public static void addBase64FilesToZip(
       @NotNull GenerateRequest generateRequest, ZipOutputStream zipOutputStream) {
 
     addContractToZip(generateRequest.getContracts().getProviderContract(), zipOutputStream);

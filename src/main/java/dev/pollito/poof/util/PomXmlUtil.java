@@ -2,9 +2,12 @@ package dev.pollito.poof.util;
 
 import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.GenerateRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 public class PomXmlUtil {
@@ -84,7 +87,17 @@ public class PomXmlUtil {
                                       </execution>
                   """;
 
-  static @NotNull Map<String, String> pomXmlReplacements(@NotNull GenerateRequest generateRequest) {
+  public static void addFileToZip(
+      ZipOutputStream zipOutputStream,
+      GenerateRequest generateRequest,
+      File file,
+      String zipEntryName)
+      throws IOException {
+    ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
+  }
+
+  private static @NotNull Map<String, String> pomXmlReplacements(
+      @NotNull GenerateRequest generateRequest) {
     Map<String, String> replacements = new HashMap<>();
     replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
     replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
