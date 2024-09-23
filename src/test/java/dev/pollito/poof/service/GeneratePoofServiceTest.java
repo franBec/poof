@@ -228,10 +228,51 @@ class GeneratePoofServiceTest {
     pomXmlBasicInfoAssertions(pomXmlContent);
     pomXmlAspectjAssertions(request, pomXmlContent);
     pomXmlProviderGenerationAssertions(pomXmlContent);
-    pomXmlConsumerGenerationAssertions(request, pomXmlContent);
+    pomXmlConsumerGenerationDependenciesAssertions(request, pomXmlContent);
+    pomXmlConsumerGenerationPluginConfigAssertions(request, pomXmlContent);
   }
 
-  private void pomXmlConsumerGenerationAssertions(
+  private void pomXmlConsumerGenerationPluginConfigAssertions(
+      @NotNull GenerateRequest request, String pomXmlContent) {
+    int consumerContractsSize = request.getContracts().getConsumerContracts().size();
+    List<String> pluginTags =
+        List.of(
+            "<generatorName>java</generatorName>",
+            "<library>feign</library>",
+            "<feignClient>true</feignClient>");
+
+    pluginTags.forEach(
+        tag -> {
+          long actualOccurrences = pomXmlContent.split(tag, -1).length - 1;
+          assertEquals(
+              consumerContractsSize,
+              actualOccurrences,
+              "The tag '"
+                  + tag
+                  + "' did not appear "
+                  + consumerContractsSize
+                  + " times in the POM XML content.");
+        });
+
+    request
+        .getContracts()
+        .getConsumerContracts()
+        .forEach(
+            contract -> {
+              assertTrue(
+                  pomXmlContent.contains(
+                      "<id>consumer generation - " + contract.getName() + "</id>"),
+                  "pom.xml should contain the correct openapi-generator-maven-plugin execution id");
+              assertTrue(
+                  pomXmlContent.contains(
+                      "<inputSpec>${project.basedir}/src/main/resources/openapi/"
+                          + contract.getName()
+                          + ".yaml</inputSpec>"),
+                  "pom.xml should contain the correct openapi-generator-maven-plugin inputSpec id");
+            });
+  }
+
+  private void pomXmlConsumerGenerationDependenciesAssertions(
       @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
     List<String> dependencies =
         List.of(

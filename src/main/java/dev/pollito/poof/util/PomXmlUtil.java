@@ -1,5 +1,6 @@
 package dev.pollito.poof.util;
 
+import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.GenerateRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class PomXmlUtil {
                                               <goal>generate</goal>
                                           </goals>
                                           <configuration>
-                                              <inputSpec>${project.basedir}/src/main/resources/openapi/sample name.yaml</inputSpec>
+                                              <inputSpec>${project.basedir}/src/main/resources/openapi/<!--name-->.yaml</inputSpec>
                                               <generatorName>java</generatorName>
                                               <library>feign</library>
                                               <output>${project.build.directory}/generated-sources/openapi/</output>
@@ -111,12 +112,16 @@ public class PomXmlUtil {
       return "";
     }
 
-    String name = "sample name";
     String uri = "com.example";
+    StringBuilder s = new StringBuilder();
+    for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
+      s.append(
+          CONSUMER_EXECUTION_BLOCK
+              .replace("<!--name-->", contract.getName())
+              .replace("<!--apiPackage-->", uri + ".api")
+              .replace("<!--modelPackage-->", uri + ".models"));
+    }
 
-    return CONSUMER_EXECUTION_BLOCK
-        .replace("<!--name-->", name)
-        .replace("<!--apiPackage-->", uri + ".api")
-        .replace("<!--modelPackage-->", uri + ".models");
+    return s.toString();
   }
 }
