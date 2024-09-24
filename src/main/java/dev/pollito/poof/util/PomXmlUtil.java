@@ -124,7 +124,7 @@ public class PomXmlUtil {
           CONSUMER_EXECUTION_BLOCK
               .replace("<!--name-->", contract.getName())
               .replace("<!--apiPackage-->", packageName + ".api")
-              .replace("<!--modelPackage-->", packageName + ".models"));
+              .replace("<!--modelPackage-->", packageName + ".model"));
     }
 
     return s.toString();

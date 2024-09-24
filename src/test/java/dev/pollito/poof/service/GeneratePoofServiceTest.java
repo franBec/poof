@@ -303,7 +303,7 @@ class GeneratePoofServiceTest {
                   pomXmlContent.contains("<apiPackage>" + packageName + ".api</apiPackage>"),
                   "pom.xml should contain the correct openapi-generator-maven-plugin <apiPackage>");
               assertTrue(
-                  pomXmlContent.contains("<modelPackage>" + packageName + ".models</modelPackage>"),
+                  pomXmlContent.contains("<modelPackage>" + packageName + ".model</modelPackage>"),
                   "pom.xml should contain the correct openapi-generator-maven-plugin <modelPackage>");
             });
   }
