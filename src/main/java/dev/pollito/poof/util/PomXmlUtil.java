@@ -1,12 +1,10 @@
 package dev.pollito.poof.util;
 
-import static dev.pollito.poof.util.Base64Util.getServerUrlFromBase64;
-
-import dev.pollito.poof.exception.InvalidServerUrlException;
 import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.GenerateRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class PomXmlUtil {
@@ -117,18 +115,16 @@ public class PomXmlUtil {
 
     StringBuilder s = new StringBuilder();
     for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
-      String url = "com." + contract.getName();
-      try {
-        url = getServerUrlFromBase64(contract.getContent());
-      } catch (InvalidServerUrlException e) {
-        // do nothing
+      String packageName = contract.getPackageName();
+      if (Objects.isNull(packageName)) {
+        packageName = "com." + contract.getName();
       }
 
       s.append(
           CONSUMER_EXECUTION_BLOCK
               .replace("<!--name-->", contract.getName())
-              .replace("<!--apiPackage-->", url + ".api")
-              .replace("<!--modelPackage-->", url + ".models"));
+              .replace("<!--apiPackage-->", packageName + ".api")
+              .replace("<!--modelPackage-->", packageName + ".models"));
     }
 
     return s.toString();
