@@ -176,7 +176,7 @@ class GeneratePoofServiceTest {
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
     expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
     expectedEntryNames.put("src/main/resources/application.yml", false);
-    expectedEntryNames.put("src/main/resources/openapi/petstore.yaml", false);
+    expectedEntryNames.put("src/main/resources/openapi/" + PETSTORE + ".yaml", false);
     expectedEntryNames.put("src/test/java/dev/pollito/poof/PoofApplicationTests.java", false);
     expectedEntryNames.put(".gitignore", false);
     expectedEntryNames.put("HELP.md", false);
@@ -197,6 +197,15 @@ class GeneratePoofServiceTest {
     if (request.getOptions().getControllerAdvice()) {
       expectedEntryNames.put(
           "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java", false);
+    }
+    if (!request.getContracts().getConsumerContracts().isEmpty()) {
+      request
+          .getContracts()
+          .getConsumerContracts()
+          .forEach(
+              contract ->
+                  expectedEntryNames.put(
+                      "src/main/resources/openapi/" + contract.getName() + ".yaml", false));
     }
     return expectedEntryNames;
   }
