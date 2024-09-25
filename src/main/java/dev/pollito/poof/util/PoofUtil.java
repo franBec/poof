@@ -1,13 +1,11 @@
 package dev.pollito.poof.util;
 
-import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
-
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.zip.ZipOutputStream;
-import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 
 public class PoofUtil {
@@ -15,12 +13,12 @@ public class PoofUtil {
 
   public static final String SRC_MAIN_JAVA_COM_EXAMPLE_DEMO = "src/main/java/com/example/demo";
 
-  @SneakyThrows
   public static void zipFolder(
       @NotNull File folder,
       String parentFolder,
       ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest) {
+      GenerateRequest generateRequest)
+      throws IOException {
     File[] files = folder.listFiles();
 
     if (Objects.nonNull(files)) {
@@ -61,17 +59,6 @@ public class PoofUtil {
               + file.getName();
     } else {
       zipEntryName = parentFolder + file.getName();
-    }
-
-    if ("DemoApplication.java".equals(file.getName())) {
-      zipEntryName =
-          zipEntryName.replace(
-              "DemoApplication.java", capitalizeFirstLetter(artifact) + "Application.java");
-    } else if ("DemoApplicationTests.java".equals(file.getName())) {
-      zipEntryName =
-          zipEntryName.replace(
-              "DemoApplicationTests.java",
-              capitalizeFirstLetter(artifact) + "ApplicationTests.java");
     }
 
     return zipEntryName;

@@ -7,8 +7,8 @@ import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.zip.ZipOutputStream;
-import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 public class GeneratePoofServiceImpl implements GeneratePoofService {
 
   @Override
-  @SneakyThrows
-  public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) {
+  public ByteArrayOutputStream generateFiles(GenerateRequest generateRequest) throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     File baseFolder = new ClassPathResource("baseTemplate").getFile();
 
