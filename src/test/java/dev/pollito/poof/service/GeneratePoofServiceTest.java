@@ -169,6 +169,34 @@ class GeneratePoofServiceTest {
     if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
       aspectAssertions(request, javaFileContent);
     }
+    if (entryName.equals(
+        "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
+      controllerAdviceAssertions(request, javaFileContent);
+    }
+  }
+
+  private void controllerAdviceAssertions(
+      @NotNull GenerateRequest request, @NotNull String javaFileContent) {
+    assertFalse(
+        javaFileContent.contains("/*ConsumerExceptionImports*/"),
+        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionImports*/");
+    assertFalse(
+        javaFileContent.contains("/*ConsumerExceptionHandlers*/"),
+        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionHandlers*/");
+
+    request
+        .getContracts()
+        .getConsumerContracts()
+        .forEach(
+            contract ->
+                assertTrue(
+                    javaFileContent.contains(
+                        "import dev.pollito.poof.exception."
+                            + capitalizeFirstLetter(contract.getName())
+                            + "Exception;"),
+                    "GlobalControllerAdvice.java should contain import dev.pollito.poof.exception."
+                        + capitalizeFirstLetter(contract.getName())
+                        + "Exception;"));
   }
 
   @NotNull
@@ -206,10 +234,13 @@ class GeneratePoofServiceTest {
           .forEach(
               contract -> {
                 expectedEntryNames.put(
-                        "src/main/resources/openapi/" + contract.getName() + ".yaml", false);
-                expectedEntryNames.put("src/main/java/dev/pollito/poof/exception/"+capitalizeFirstLetter(contract.getName())+"Exception.java", false);
-              }
-          );
+                    "src/main/resources/openapi/" + contract.getName() + ".yaml", false);
+                expectedEntryNames.put(
+                    "src/main/java/dev/pollito/poof/exception/"
+                        + capitalizeFirstLetter(contract.getName())
+                        + "Exception.java",
+                    false);
+              });
     }
     return expectedEntryNames;
   }

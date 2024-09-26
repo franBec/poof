@@ -20,6 +20,16 @@ public class JavaFileUtil {
   private static final String CONSUMER_EXCEPTION_JAVA = "ConsumerException.java";
   private static final String DEMO_APPLICATION_JAVA = "DemoApplication.java";
   private static final String DEMO_APPLICATION_TESTS_JAVA = "DemoApplicationTests.java";
+  private static final String GLOBAL_CONTROLLER_ADVICE_JAVA = "GlobalControllerAdvice.java";
+  private static final String GLOBAL_CONTROLLER_ADVICE_EXCEPTION_BLOCK =
+      """
+
+            @ExceptionHandler(/*Exception*/.class)
+              public ProblemDetail handle(@NotNull /*Exception*/ e) {
+                log.error("/*Exception*/ being handled", e);
+                return buildProblemDetail(e);
+              }
+          """;
 
   private JavaFileUtil() {}
 
@@ -40,6 +50,8 @@ public class JavaFileUtil {
       addJavaMainToZip(zipOutputStream, generateRequest, file, zipEntryName);
     } else if (zipEntryName.contains(DEMO_APPLICATION_TESTS_JAVA)) {
       addJavaMainTestToZip(zipOutputStream, generateRequest, file, zipEntryName);
+    } else if (zipEntryName.contains(GLOBAL_CONTROLLER_ADVICE_JAVA)) {
+      addGlobalControllerAdviceToZip(zipOutputStream, generateRequest, file, zipEntryName);
     } else {
       ZipUtil.addFileToZip(
           file,
@@ -47,6 +59,41 @@ public class JavaFileUtil {
           zipOutputStream,
           javaReplacements(generateRequest.getProjectMetadata()));
     }
+  }
+
+  private static void addGlobalControllerAdviceToZip(
+      ZipOutputStream zipOutputStream,
+      @NotNull GenerateRequest generateRequest,
+      File file,
+      String zipEntryName)
+      throws IOException {
+    Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
+    String consumerExceptionImportsTarget = "/*ConsumerExceptionImports*/";
+    String consumerExceptionHandlersTarget = "/*ConsumerExceptionHandlers*/";
+    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
+      replacements.put(consumerExceptionImportsTarget, "");
+      replacements.put(consumerExceptionHandlersTarget, "");
+    } else {
+      StringBuilder consumerExceptionsImports = new StringBuilder();
+      StringBuilder consumerExceptionsHandlers = new StringBuilder();
+      for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
+        consumerExceptionsImports
+            .append("\nimport ")
+            .append(generateRequest.getProjectMetadata().getGroup())
+            .append(".")
+            .append(generateRequest.getProjectMetadata().getArtifact())
+            .append(".exception.")
+            .append(capitalizeFirstLetter(contract.getName()))
+            .append("Exception;");
+
+        consumerExceptionsHandlers.append(
+            GLOBAL_CONTROLLER_ADVICE_EXCEPTION_BLOCK.replace(
+                "/*Exception*/", capitalizeFirstLetter(contract.getName()) + "Exception"));
+      }
+      replacements.put(consumerExceptionImportsTarget, consumerExceptionsImports.toString());
+      replacements.put(consumerExceptionHandlersTarget, consumerExceptionsHandlers.toString());
+    }
+    ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream, replacements);
   }
 
   @NotNull
@@ -78,7 +125,7 @@ public class JavaFileUtil {
     ZipUtil.addFileToZip(
         file,
         zipEntryName.replace(
-                DEMO_APPLICATION_TESTS_JAVA,
+            DEMO_APPLICATION_TESTS_JAVA,
             capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact())
                 + "ApplicationTests.java"),
         zipOutputStream,
@@ -94,7 +141,7 @@ public class JavaFileUtil {
     ZipUtil.addFileToZip(
         file,
         zipEntryName.replace(
-                DEMO_APPLICATION_JAVA,
+            DEMO_APPLICATION_JAVA,
             capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact())
                 + "Application.java"),
         zipOutputStream,
@@ -113,7 +160,7 @@ public class JavaFileUtil {
       ZipUtil.addFileToZip(
           file,
           zipEntryName.replace(
-                  CONSUMER_EXCEPTION_JAVA,
+              CONSUMER_EXCEPTION_JAVA,
               capitalizeFirstLetter(contract.getName()) + "Exception.java"),
           zipOutputStream,
           replacements);
