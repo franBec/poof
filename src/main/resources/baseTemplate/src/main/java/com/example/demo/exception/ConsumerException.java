@@ -1,4 +1,4 @@
-package com.example.exception;
+package /*group*/./*artifact*/.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

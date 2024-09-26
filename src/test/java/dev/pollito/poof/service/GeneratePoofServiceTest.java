@@ -1,5 +1,6 @@
 package dev.pollito.poof.service;
 
+import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -203,9 +204,12 @@ class GeneratePoofServiceTest {
           .getContracts()
           .getConsumerContracts()
           .forEach(
-              contract ->
-                  expectedEntryNames.put(
-                      "src/main/resources/openapi/" + contract.getName() + ".yaml", false));
+              contract -> {
+                expectedEntryNames.put(
+                        "src/main/resources/openapi/" + contract.getName() + ".yaml", false);
+                expectedEntryNames.put("src/main/java/dev/pollito/poof/exception/"+capitalizeFirstLetter(contract.getName())+"Exception.java", false);
+              }
+          );
     }
     return expectedEntryNames;
   }
