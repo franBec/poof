@@ -1,12 +1,7 @@
 package dev.pollito.poof.service;
 
 import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.Contracts;
@@ -121,172 +116,28 @@ class GeneratePoofServiceTest {
       ZipEntry entry;
       while (Objects.nonNull(entry = zipInputStream.getNextEntry())) {
         String entryName = entry.getName();
-        checkFileIsExpected(expectedEntryNames, entryName);
+        FileAssertions.checkFileIsExpected(expectedEntryNames, entryName);
 
         if (entryName.equals("pom.xml")) {
-          pomXmlAssertions(request, readZipEntryContent(zipInputStream));
+          PomXmlAssertions.pomXmlAssertions(request, readZipEntryContent(zipInputStream));
         } else if (entryName.equals("src/main/resources/application.yml")) {
-          applicationYmlAssertions(readZipEntryContent(zipInputStream));
+          ApplicationYmlAssertions.applicationYmlAssertions(readZipEntryContent(zipInputStream));
         } else if (entryName.endsWith(".java")) {
-          javaFilesAssertions(request, entryName, readZipEntryContent(zipInputStream));
+          JavaFilesAssertions.javaFilesAssertions(
+              request, entryName, readZipEntryContent(zipInputStream));
         } else {
-          checkFileIsNotEmpty(entryName, readZipEntryContent(zipInputStream));
+          FileAssertions.checkFileIsNotEmpty(entryName, readZipEntryContent(zipInputStream));
         }
         expectedEntryNames.put(entryName, true);
         zipInputStream.closeEntry();
       }
 
-      checkAllExpectedFilesWereCopied(expectedEntryNames);
+      FileAssertions.checkAllExpectedFilesWereCopied(expectedEntryNames);
     }
-  }
-
-  private void checkAllExpectedFilesWereCopied(@NotNull Map<String, Boolean> expectedEntryNames) {
-    expectedEntryNames.forEach(
-        (entryName, isFound) -> assertTrue(isFound, entryName + " should exist"));
-  }
-
-  private void checkFileIsExpected(
-      @NotNull Map<String, Boolean> expectedEntryNames, String entryName) {
-    assertTrue(expectedEntryNames.containsKey(entryName), "Unexpected file: " + entryName);
-  }
-
-  private void checkFileIsNotEmpty(String entryName, @NotNull String fileContent) {
-    assertFalse(fileContent.trim().isEmpty(), entryName + " should not be empty");
-  }
-
-  private void javaFilesAssertions(
-      GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    assertTrue(
-        javaFileContent.startsWith("package dev.pollito.poof"),
-        entryName + " should start with 'package dev.pollito.poof'");
-
-    if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
-      mainJavaFileAssertions(javaFileContent);
-    }
-    if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
-      appTestFileAssertions(javaFileContent);
-    }
-    if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
-      aspectAssertions(request, javaFileContent);
-    }
-    if (entryName.equals(
-        "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
-      controllerAdviceAssertions(request, javaFileContent);
-    }
-    if(entryName.startsWith("src/main/java/dev/pollito/poof/errordecoder/")){
-      consumerErrorDecoderAssertions(request, entryName, javaFileContent);
-    }
-    if (entryName.startsWith("src/main/java/dev/pollito/poof/exception/")) {
-      consumerExceptionAssertions(request, entryName, javaFileContent);
-    }
-  }
-
-  private void consumerExceptionAssertions(
-      @NotNull GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    long fileNameCount = request
-            .getContracts()
-            .getConsumerContracts()
-            .stream()
-            .map(contract -> "src/main/java/dev/pollito/poof/exception/"+capitalizeFirstLetter(contract.getName())+"Exception.java")
-            .filter(entryName::contains)
-            .count();
-    assertEquals(
-            1,
-            fileNameCount,
-            "Consumer Exception generated should contain one match of the possible names, but found "
-                    + fileNameCount);
-
-    long classDefinitionCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "public class "
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception extends RuntimeException {")
-            .filter(javaFileContent::contains)
-            .count();
-
-    assertEquals(
-        1,
-        classDefinitionCount,
-        "Consumer Exception generated should contain one match of the possible class definition, but found "
-            + classDefinitionCount);
-  }
-
-  private void consumerErrorDecoderAssertions(
-          @NotNull GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    long fileNameCount = request
-            .getContracts()
-            .getConsumerContracts()
-            .stream()
-            .map(contract -> "src/main/java/dev/pollito/poof/errordecoder/"+capitalizeFirstLetter(contract.getName())+"ErrorDecoder.java")
-            .filter(entryName::contains)
-            .count();
-    assertEquals(
-            1,
-            fileNameCount,
-            "Consumer Error Decoder generated should contain one match of the possible names, but found "
-                    + fileNameCount);
-
-    long classDefinitionCount =
-            request.getContracts().getConsumerContracts().stream()
-                    .map(
-                            contract ->
-                                    "public class "
-                                            + capitalizeFirstLetter(contract.getName())
-                                            + "ErrorDecoder implements ErrorDecoder {")
-                    .filter(javaFileContent::contains)
-                    .count();
-
-    assertEquals(
-            1,
-            classDefinitionCount,
-            "Error Decoder generated should contain one match of the possible class definition, but found "
-                    + classDefinitionCount);
-
-    long exceptionReturnedCount =
-            request.getContracts().getConsumerContracts().stream()
-                    .map(
-                            contract ->
-                                    "return new "
-                                            + capitalizeFirstLetter(contract.getName())
-                                            + "Exception(new String(body.readAllBytes(), StandardCharsets.UTF_8));")
-                    .filter(javaFileContent::contains)
-                    .count();
-
-    assertEquals(
-            1,
-            classDefinitionCount,
-            "Error Decoder generated should contain one match of the possible exception returns, but found "
-                    + exceptionReturnedCount);
-  }
-
-  private void controllerAdviceAssertions(
-      @NotNull GenerateRequest request, @NotNull String javaFileContent) {
-    assertFalse(
-        javaFileContent.contains("/*ConsumerExceptionImports*/"),
-        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionImports*/");
-    assertFalse(
-        javaFileContent.contains("/*ConsumerExceptionHandlers*/"),
-        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionHandlers*/");
-
-    request
-        .getContracts()
-        .getConsumerContracts()
-        .forEach(
-            contract ->
-                assertTrue(
-                    javaFileContent.contains(
-                        "import dev.pollito.poof.exception."
-                            + capitalizeFirstLetter(contract.getName())
-                            + "Exception;"),
-                    "GlobalControllerAdvice.java should contain import dev.pollito.poof.exception."
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception;"));
   }
 
   @NotNull
-  private Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull GenerateRequest request) {
+  private static Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull GenerateRequest request) {
     Map<String, Boolean> expectedEntryNames = new HashMap<>();
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
     expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
@@ -336,169 +187,8 @@ class GeneratePoofServiceTest {
     return expectedEntryNames;
   }
 
-  private void aspectAssertions(@NotNull GenerateRequest request, String aspectContent) {
-    if (request.getOptions().getLoggingAspect()) {
-      assertNotNull(aspectContent, "LoggingAspect.java should exist");
-      assertTrue(
-          aspectContent.contains("public class LoggingAspect"),
-          "LoggingAspect.java should contain the correct class name");
-      assertTrue(
-          aspectContent.contains(
-              "@Pointcut(\"execution(public * dev.pollito.poof.controller..*.*(..))\")"),
-          "LoggingAspect.java should contain the correct pointcut expression");
-    } else {
-      assertNull(aspectContent, "LoggingAspect.java should not exist");
-    }
-  }
-
-  private void applicationYmlAssertions(String applicationYmlContent) {
-    assertNotNull(applicationYmlContent, "application.yml content should not be null");
-    assertTrue(
-        applicationYmlContent.contains("name: poof"),
-        "application.yml should contain the correct spring application name");
-  }
-
-  private void appTestFileAssertions(String appTestFileContent) {
-    assertNotNull(appTestFileContent, "PoofApplicationTests.java content should not be null");
-    assertTrue(
-        appTestFileContent.contains("class PoofApplicationTests {"),
-        "Main Java application test file should contain the correct class name");
-  }
-
-  private void mainJavaFileAssertions(String mainJavaAppFileContent) {
-    assertNotNull(mainJavaAppFileContent, "PoofApplication.java content should not be null");
-    assertTrue(
-        mainJavaAppFileContent.contains("public class PoofApplication {"),
-        "Main Java application file should contain the correct class name");
-    assertTrue(
-        mainJavaAppFileContent.contains("SpringApplication.run(PoofApplication.class, args);"),
-        "Main Java application file should run the correct SpringApplication.run");
-  }
-
-  private void pomXmlAssertions(@NotNull GenerateRequest request, String pomXmlContent) {
-    pomXmlBasicInfoAssertions(pomXmlContent);
-    pomXmlAspectjAssertions(request, pomXmlContent);
-    pomXmlProviderGenerationAssertions(pomXmlContent);
-    pomXmlConsumerGenerationDependenciesAssertions(request, pomXmlContent);
-    pomXmlConsumerGenerationPluginConfigAssertions(request, pomXmlContent);
-  }
-
-  private void pomXmlConsumerGenerationPluginConfigAssertions(
-      @NotNull GenerateRequest request, String pomXmlContent) {
-    int consumerContractsSize = request.getContracts().getConsumerContracts().size();
-    List<String> pluginTags =
-        List.of(
-            "<generatorName>java</generatorName>",
-            "<library>feign</library>",
-            "<feignClient>true</feignClient>");
-
-    pluginTags.forEach(
-        tag -> {
-          long actualOccurrences = pomXmlContent.split(tag, -1).length - 1;
-          assertEquals(
-              consumerContractsSize,
-              actualOccurrences,
-              "The tag '"
-                  + tag
-                  + "' did not appear "
-                  + consumerContractsSize
-                  + " times in the POM XML content.");
-        });
-
-    request
-        .getContracts()
-        .getConsumerContracts()
-        .forEach(
-            contract -> {
-              assertTrue(
-                  pomXmlContent.contains(
-                      "<id>consumer generation - " + contract.getName() + "</id>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin execution id");
-              assertTrue(
-                  pomXmlContent.contains(
-                      "<inputSpec>${project.basedir}/src/main/resources/openapi/"
-                          + contract.getName()
-                          + ".yaml</inputSpec>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin inputSpec id");
-
-              String packageName = contract.getPackageName();
-              if (Objects.isNull(packageName)) {
-                packageName = "com." + contract.getName();
-              }
-              assertTrue(
-                  pomXmlContent.contains("<apiPackage>" + packageName + ".api</apiPackage>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin <apiPackage>");
-              assertTrue(
-                  pomXmlContent.contains("<modelPackage>" + packageName + ".model</modelPackage>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin <modelPackage>");
-            });
-  }
-
-  private void pomXmlConsumerGenerationDependenciesAssertions(
-      @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
-    List<String> dependencies =
-        List.of(
-            "<artifactId>javax.annotation-api</artifactId>",
-            "<artifactId>feign-okhttp</artifactId>",
-            "<artifactId>spring-cloud-starter-openfeign</artifactId>",
-            "<artifactId>feign-jackson</artifactId>",
-            "<artifactId>jsr305</artifactId>",
-            "<artifactId>junit-jupiter-api</artifactId>",
-            "<artifactId>feign-gson</artifactId>");
-    boolean expected = !request.getContracts().getConsumerContracts().isEmpty();
-
-    dependencies.forEach(
-        dependency ->
-            assertEquals(
-                expected,
-                pomXmlContent.contains(dependency),
-                "pom.xml should " + (expected ? "" : "not ") + "contain " + dependency));
-  }
-
-  private void pomXmlProviderGenerationAssertions(@NotNull String pomXmlContent) {
-    assertTrue(
-        pomXmlContent.contains("<id>provider generation - poof.yaml</id>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution id");
-    assertTrue(
-        pomXmlContent.contains(
-            "<inputSpec>${project.basedir}/src/main/resources/openapi/poof.yaml</inputSpec>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration inputSpec");
-    assertTrue(
-        pomXmlContent.contains("<apiPackage>${project.groupId}.poof.api</apiPackage>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration apiPackage");
-    assertTrue(
-        pomXmlContent.contains("<modelPackage>${project.groupId}.poof.model</modelPackage>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration modelPackage");
-  }
-
-  private void pomXmlAspectjAssertions(
-      @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
-    String aspectjArtifactId = "<artifactId>aspectjtools</artifactId>";
-    boolean expected = request.getOptions().getLoggingAspect();
-
-    assertEquals(
-        expected,
-        pomXmlContent.contains(aspectjArtifactId),
-        "pom.xml should " + (expected ? "" : "not ") + "contain artifactId org.aspectj");
-  }
-
-  private void pomXmlBasicInfoAssertions(@NotNull String pomXmlContent) {
-    assertTrue(
-        pomXmlContent.contains("<groupId>dev.pollito</groupId>"),
-        "pom.xml should contain the correct <groupId>");
-    assertTrue(
-        pomXmlContent.contains("<artifactId>poof</artifactId>"),
-        "pom.xml should contain the correct <artifactId>");
-    assertTrue(
-        pomXmlContent.contains("<name>poof</name>"), "pom.xml should contain the correct <name>");
-    assertTrue(
-        pomXmlContent.contains(
-            "<description>poof - Pollito Over Opinionated Framework</description>"),
-        "pom.xml should contain the correct <description>");
-  }
-
   @SneakyThrows
-  private String readZipEntryContent(@NotNull InputStream inputStream) {
+  private static String readZipEntryContent(@NotNull InputStream inputStream) {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     byte[] buffer = new byte[1024];
     int length;
