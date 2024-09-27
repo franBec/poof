@@ -173,6 +173,92 @@ class GeneratePoofServiceTest {
         "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
       controllerAdviceAssertions(request, javaFileContent);
     }
+    if(entryName.startsWith("src/main/java/dev/pollito/poof/errordecoder/")){
+      consumerErrorDecoderAssertions(request, entryName, javaFileContent);
+    }
+    if (entryName.startsWith("src/main/java/dev/pollito/poof/exception/")) {
+      consumerExceptionAssertions(request, entryName, javaFileContent);
+    }
+  }
+
+  private void consumerExceptionAssertions(
+      @NotNull GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
+    long fileNameCount = request
+            .getContracts()
+            .getConsumerContracts()
+            .stream()
+            .map(contract -> "src/main/java/dev/pollito/poof/exception/"+capitalizeFirstLetter(contract.getName())+"Exception.java")
+            .filter(entryName::contains)
+            .count();
+    assertEquals(
+            1,
+            fileNameCount,
+            "Consumer Exception generated should contain one match of the possible names, but found "
+                    + fileNameCount);
+
+    long classDefinitionCount =
+        request.getContracts().getConsumerContracts().stream()
+            .map(
+                contract ->
+                    "public class "
+                        + capitalizeFirstLetter(contract.getName())
+                        + "Exception extends RuntimeException {")
+            .filter(javaFileContent::contains)
+            .count();
+
+    assertEquals(
+        1,
+        classDefinitionCount,
+        "Consumer Exception generated should contain one match of the possible class definition, but found "
+            + classDefinitionCount);
+  }
+
+  private void consumerErrorDecoderAssertions(
+          @NotNull GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
+    long fileNameCount = request
+            .getContracts()
+            .getConsumerContracts()
+            .stream()
+            .map(contract -> "src/main/java/dev/pollito/poof/errordecoder/"+capitalizeFirstLetter(contract.getName())+"ErrorDecoder.java")
+            .filter(entryName::contains)
+            .count();
+    assertEquals(
+            1,
+            fileNameCount,
+            "Consumer Error Decoder generated should contain one match of the possible names, but found "
+                    + fileNameCount);
+
+    long classDefinitionCount =
+            request.getContracts().getConsumerContracts().stream()
+                    .map(
+                            contract ->
+                                    "public class "
+                                            + capitalizeFirstLetter(contract.getName())
+                                            + "ErrorDecoder implements ErrorDecoder {")
+                    .filter(javaFileContent::contains)
+                    .count();
+
+    assertEquals(
+            1,
+            classDefinitionCount,
+            "Error Decoder generated should contain one match of the possible class definition, but found "
+                    + classDefinitionCount);
+
+    long exceptionReturnedCount =
+            request.getContracts().getConsumerContracts().stream()
+                    .map(
+                            contract ->
+                                    "return new "
+                                            + capitalizeFirstLetter(contract.getName())
+                                            + "Exception(new String(body.readAllBytes(), StandardCharsets.UTF_8));")
+                    .filter(javaFileContent::contains)
+                    .count();
+
+    assertEquals(
+            1,
+            classDefinitionCount,
+            "Error Decoder generated should contain one match of the possible exception returns, but found "
+                    + exceptionReturnedCount);
   }
 
   private void controllerAdviceAssertions(
@@ -239,6 +325,11 @@ class GeneratePoofServiceTest {
                     "src/main/java/dev/pollito/poof/exception/"
                         + capitalizeFirstLetter(contract.getName())
                         + "Exception.java",
+                    false);
+                expectedEntryNames.put(
+                    "src/main/java/dev/pollito/poof/errordecoder/"
+                        + capitalizeFirstLetter(contract.getName())
+                        + "ErrorDecoder.java",
                     false);
               });
     }

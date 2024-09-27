@@ -21,6 +21,7 @@ public class JavaFileUtil {
   private static final String DEMO_APPLICATION_JAVA = "DemoApplication.java";
   private static final String DEMO_APPLICATION_TESTS_JAVA = "DemoApplicationTests.java";
   private static final String GLOBAL_CONTROLLER_ADVICE_JAVA = "GlobalControllerAdvice.java";
+  private static final String CONSUMER_ERROR_DECODER_JAVA = "ConsumerErrorDecoder.java";
   private static final String GLOBAL_CONTROLLER_ADVICE_EXCEPTION_BLOCK =
       """
 
@@ -52,12 +53,33 @@ public class JavaFileUtil {
       addJavaMainTestToZip(zipOutputStream, generateRequest, file, zipEntryName);
     } else if (zipEntryName.contains(GLOBAL_CONTROLLER_ADVICE_JAVA)) {
       addGlobalControllerAdviceToZip(zipOutputStream, generateRequest, file, zipEntryName);
+    } else if (zipEntryName.contains(CONSUMER_ERROR_DECODER_JAVA)) {
+      addConsumerErrorDecoderToZip(zipOutputStream, generateRequest, file, zipEntryName);
     } else {
       ZipUtil.addFileToZip(
           file,
           zipEntryName,
           zipOutputStream,
           javaReplacements(generateRequest.getProjectMetadata()));
+    }
+  }
+
+  private static void addConsumerErrorDecoderToZip(
+      ZipOutputStream zipOutputStream,
+      @NotNull GenerateRequest generateRequest,
+      File file,
+      String zipEntryName)
+      throws IOException {
+    for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
+      Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
+      replacements.put("/*Consumer*/", capitalizeFirstLetter(contract.getName()));
+      ZipUtil.addFileToZip(
+          file,
+          zipEntryName.replace(
+              CONSUMER_ERROR_DECODER_JAVA,
+              capitalizeFirstLetter(contract.getName()) + "ErrorDecoder.java"),
+          zipOutputStream,
+          replacements);
     }
   }
 
@@ -105,12 +127,15 @@ public class JavaFileUtil {
         new AbstractMap.SimpleEntry<>(
             "config/WebConfig.java", generateRequest.getOptions().getAllowCorsFromAnySource()),
         new AbstractMap.SimpleEntry<>(
-            "controller/advice/GlobalControllerAdvice.java",
+            "controller/advice/" + GLOBAL_CONTROLLER_ADVICE_JAVA,
             generateRequest.getOptions().getControllerAdvice()),
         new AbstractMap.SimpleEntry<>(
             "config/LogFilterConfig.java", generateRequest.getOptions().getLogFilter()),
         new AbstractMap.SimpleEntry<>(
-            "exception/ConsumerException.java",
+            "errordecoder/" + CONSUMER_ERROR_DECODER_JAVA,
+            !generateRequest.getContracts().getConsumerContracts().isEmpty()),
+        new AbstractMap.SimpleEntry<>(
+            "exception/" + CONSUMER_EXCEPTION_JAVA,
             !generateRequest.getContracts().getConsumerContracts().isEmpty()),
         new AbstractMap.SimpleEntry<>(
             "filter/LogFilter.java", generateRequest.getOptions().getLogFilter()));
@@ -156,7 +181,7 @@ public class JavaFileUtil {
       throws IOException {
     for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
       Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
-      replacements.put("Consumer", contract.getName());
+      replacements.put("/*Consumer*/", capitalizeFirstLetter(contract.getName()));
       ZipUtil.addFileToZip(
           file,
           zipEntryName.replace(
