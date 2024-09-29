@@ -121,7 +121,8 @@ class GeneratePoofServiceTest {
         if (entryName.equals("pom.xml")) {
           PomXmlAssertions.pomXmlAssertions(request, readZipEntryContent(zipInputStream));
         } else if (entryName.equals("src/main/resources/application.yml")) {
-          ApplicationYmlAssertions.applicationYmlAssertions(readZipEntryContent(zipInputStream));
+          ApplicationYmlAssertions.applicationYmlAssertions(
+              readZipEntryContent(zipInputStream), request.getContracts().getConsumerContracts());
         } else if (entryName.endsWith(".java")) {
           JavaFilesAssertions.javaFilesAssertions(
               request, entryName, readZipEntryContent(zipInputStream));
