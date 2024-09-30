@@ -44,9 +44,11 @@ components:
           type: string
         name:
           description: name of the file (names are lost when file converted to base64)
+          pattern: '^[a-z]+([A-Z][a-z]*){0,15}$'
           type: string
         packageName:
-          description: package name where all related generated code will go into. If null, will default to com.<contract name>
+          description: package name where all related generated code will go into
+          pattern: '^([a-z]+(\.[a-z][a-z0-9]*)*)$'
           type: string
       type: object
       required:

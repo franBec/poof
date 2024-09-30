@@ -122,7 +122,7 @@ public class PomXmlUtil {
     for (Contract contract : request.getContracts().getConsumerContracts()) {
       String packageName = contract.getPackageName();
       if (Objects.isNull(packageName)) {
-        packageName = "com." + contract.getName();
+        packageName = "com." + contract.getName().toLowerCase();
       }
 
       s.append(

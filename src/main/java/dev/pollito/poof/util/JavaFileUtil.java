@@ -86,7 +86,7 @@ public class JavaFileUtil {
     for (Contract contract : request.getContracts().getConsumerContracts()) {
       Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
       replacements.put("/*ConsumerName*/", capitalizeFirstLetter(contract.getName()));
-      replacements.put("/*consumerName*/", contract.getName());
+      replacements.put("/*consumername*/", contract.getName().toLowerCase());
       ZipUtil.addFileToZip(
           file,
           zipEntryName.replace(
