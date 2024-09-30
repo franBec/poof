@@ -24,6 +24,7 @@ public class JavaFileUtil {
   private static final String DEMO_APPLICATION_TESTS_JAVA = "DemoApplicationTests.java";
   private static final String GLOBAL_CONTROLLER_ADVICE_JAVA = "GlobalControllerAdvice.java";
   private static final String CONSUMER_ERROR_DECODER_JAVA = "ConsumerErrorDecoder.java";
+  private static final String CONSUMER_CONFIG_PROPERTIES_JAVA = "ConsumerConfigProperties.java";
   private static final String GLOBAL_CONTROLLER_ADVICE_EXCEPTION_BLOCK =
       """
 
@@ -71,8 +72,29 @@ public class JavaFileUtil {
     actionMap.put(DEMO_APPLICATION_TESTS_JAVA, JavaFileUtil::addJavaMainTestToZip);
     actionMap.put(GLOBAL_CONTROLLER_ADVICE_JAVA, JavaFileUtil::addGlobalControllerAdviceToZip);
     actionMap.put(CONSUMER_ERROR_DECODER_JAVA, JavaFileUtil::addConsumerErrorDecoderToZip);
+    actionMap.put(CONSUMER_CONFIG_PROPERTIES_JAVA, JavaFileUtil::addConsumerConfigPropertiesToZip);
 
     return actionMap;
+  }
+
+  @SneakyThrows
+  private static void addConsumerConfigPropertiesToZip(
+      ZipOutputStream zipOutputStream,
+      @NotNull PoofRequest request,
+      File file,
+      String zipEntryName) {
+    for (Contract contract : request.getContracts().getConsumerContracts()) {
+      Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
+      replacements.put("/*ConsumerName*/", capitalizeFirstLetter(contract.getName()));
+      replacements.put("/*consumerName*/", contract.getName());
+      ZipUtil.addFileToZip(
+          file,
+          zipEntryName.replace(
+              CONSUMER_CONFIG_PROPERTIES_JAVA,
+              capitalizeFirstLetter(contract.getName()) + "ConfigProperties.java"),
+          zipOutputStream,
+          replacements);
+    }
   }
 
   @SneakyThrows
@@ -141,6 +163,9 @@ public class JavaFileUtil {
             request.getOptions().getControllerAdvice()),
         new AbstractMap.SimpleEntry<>(
             "config/LogFilterConfig.java", request.getOptions().getLogFilter()),
+        new AbstractMap.SimpleEntry<>(
+            "config/properties/ConsumerConfigProperties.java",
+            !request.getContracts().getConsumerContracts().isEmpty()),
         new AbstractMap.SimpleEntry<>(
             "errordecoder/" + CONSUMER_ERROR_DECODER_JAVA,
             !request.getContracts().getConsumerContracts().isEmpty()),

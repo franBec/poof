@@ -28,6 +28,9 @@ public class JavaFilesAssertions {
     if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
       aspectAssertions(request, javaFileContent);
     }
+    if (entryName.startsWith("src/main/java/dev/pollito/poof/config/properties/")) {
+      consumerConfigPropertiesAssertions(request, entryName, javaFileContent);
+    }
     if (entryName.equals(
         "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
       controllerAdviceAssertions(request, javaFileContent);
@@ -38,6 +41,40 @@ public class JavaFilesAssertions {
     if (entryName.startsWith("src/main/java/dev/pollito/poof/exception/")) {
       consumerExceptionAssertions(request, entryName, javaFileContent);
     }
+  }
+
+  private static void consumerConfigPropertiesAssertions(
+      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
+    long fileNameCount =
+        request.getContracts().getConsumerContracts().stream()
+            .map(
+                contract ->
+                    "src/main/java/dev/pollito/poof/config/properties/"
+                        + capitalizeFirstLetter(contract.getName())
+                        + "ConfigProperties.java")
+            .filter(entryName::contains)
+            .count();
+    assertEquals(
+        1,
+        fileNameCount,
+        "Consumer Config Properties generated should contain one match of the possible names, but found "
+            + fileNameCount);
+
+    long classDefinitionCount =
+        request.getContracts().getConsumerContracts().stream()
+            .map(
+                contract ->
+                    "public class "
+                        + capitalizeFirstLetter(contract.getName())
+                        + "ConfigProperties {")
+            .filter(javaFileContent::contains)
+            .count();
+
+    assertEquals(
+        1,
+        classDefinitionCount,
+        "Consumer Config Properties generated should contain one match of the possible class definition, but found "
+            + classDefinitionCount);
   }
 
   private static void consumerExceptionAssertions(

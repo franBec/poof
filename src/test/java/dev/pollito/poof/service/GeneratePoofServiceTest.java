@@ -174,6 +174,11 @@ class GeneratePoofServiceTest {
                 expectedEntryNames.put(
                     "src/main/resources/openapi/" + contract.getName() + ".yaml", false);
                 expectedEntryNames.put(
+                    "src/main/java/dev/pollito/poof/config/properties/"
+                        + capitalizeFirstLetter(contract.getName())
+                        + "ConfigProperties.java",
+                    false);
+                expectedEntryNames.put(
                     "src/main/java/dev/pollito/poof/exception/"
                         + capitalizeFirstLetter(contract.getName())
                         + "Exception.java",
