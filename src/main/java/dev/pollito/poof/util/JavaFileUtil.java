@@ -164,7 +164,7 @@ public class JavaFileUtil {
         new AbstractMap.SimpleEntry<>(
             "config/LogFilterConfig.java", request.getOptions().getLogFilter()),
         new AbstractMap.SimpleEntry<>(
-            "config/properties/ConsumerConfigProperties.java",
+            "config/properties/" + CONSUMER_CONFIG_PROPERTIES_JAVA,
             !request.getContracts().getConsumerContracts().isEmpty()),
         new AbstractMap.SimpleEntry<>(
             "errordecoder/" + CONSUMER_ERROR_DECODER_JAVA,
