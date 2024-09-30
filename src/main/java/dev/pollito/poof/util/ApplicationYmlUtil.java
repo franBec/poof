@@ -42,7 +42,8 @@ public class ApplicationYmlUtil {
     StringBuilder clientUrls = new StringBuilder();
     clientContracts.forEach(
         contract ->
-            clientUrls.append(CLIENT_URL_DEFINITION.replace("/*client*/", contract.getName())));
+            clientUrls.append(
+                CLIENT_URL_DEFINITION.replace("/*client*/", contract.getName().toLowerCase())));
     return clientUrls.toString();
   }
 }

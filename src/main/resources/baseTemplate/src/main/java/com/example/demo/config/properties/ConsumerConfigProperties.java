@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "/*consumerName*/")
+@ConfigurationProperties(prefix = "/*consumername*/")
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class /*ConsumerName*/ConfigProperties {
