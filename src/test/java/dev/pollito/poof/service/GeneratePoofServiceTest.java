@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.Contracts;
-import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.Options;
+import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.impl.GeneratePoofServiceImpl;
 import java.io.ByteArrayInputStream;
@@ -93,8 +93,8 @@ class GeneratePoofServiceTest {
   @MethodSource("methodSourceProvider")
   @SneakyThrows
   void generatedZipContainsExpectedFiles(Options options, List<Contract> consumerContracts) {
-    GenerateRequest request =
-        new GenerateRequest()
+    PoofRequest request =
+        new PoofRequest()
             .contracts(
                 new Contracts()
                     .providerContract(
@@ -138,7 +138,7 @@ class GeneratePoofServiceTest {
   }
 
   @NotNull
-  private static Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull GenerateRequest request) {
+  private static Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull PoofRequest request) {
     Map<String, Boolean> expectedEntryNames = new HashMap<>();
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
     expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
@@ -201,7 +201,7 @@ class GeneratePoofServiceTest {
 
   @Test
   void generatePoofThrowsException() {
-    GenerateRequest generateRequest = new GenerateRequest();
-    assertThrows(RuntimeException.class, () -> generatePoofService.generateFiles(generateRequest));
+    PoofRequest request = new PoofRequest();
+    assertThrows(RuntimeException.class, () -> generatePoofService.generateFiles(request));
   }
 }

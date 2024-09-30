@@ -7,14 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaFilesAssertions {
   private JavaFilesAssertions() {}
 
   public static void javaFilesAssertions(
-      GenerateRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
+      PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
     assertTrue(
         javaFileContent.startsWith("package dev.pollito.poof"),
         entryName + " should start with 'package dev.pollito.poof'");
@@ -41,9 +41,7 @@ public class JavaFilesAssertions {
   }
 
   private static void consumerExceptionAssertions(
-      @NotNull GenerateRequest request,
-      @NotNull String entryName,
-      @NotNull String javaFileContent) {
+      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
     long fileNameCount =
         request.getContracts().getConsumerContracts().stream()
             .map(
@@ -77,9 +75,7 @@ public class JavaFilesAssertions {
   }
 
   private static void consumerErrorDecoderAssertions(
-      @NotNull GenerateRequest request,
-      @NotNull String entryName,
-      @NotNull String javaFileContent) {
+      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
     long fileNameCount =
         request.getContracts().getConsumerContracts().stream()
             .map(
@@ -129,7 +125,7 @@ public class JavaFilesAssertions {
   }
 
   private static void controllerAdviceAssertions(
-      @NotNull GenerateRequest request, @NotNull String javaFileContent) {
+      @NotNull PoofRequest request, @NotNull String javaFileContent) {
     assertFalse(
         javaFileContent.contains("/*ConsumerExceptionImports*/"),
         "GlobalControllerAdvice.java should not contain /*ConsumerExceptionImports*/");
@@ -152,7 +148,7 @@ public class JavaFilesAssertions {
                         + "Exception;"));
   }
 
-  private static void aspectAssertions(@NotNull GenerateRequest request, String aspectContent) {
+  private static void aspectAssertions(@NotNull PoofRequest request, String aspectContent) {
     if (request.getOptions().getLoggingAspect()) {
       assertNotNull(aspectContent, "LoggingAspect.java should exist");
       assertTrue(

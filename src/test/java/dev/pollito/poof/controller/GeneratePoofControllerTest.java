@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.Options;
+import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayInputStream;
@@ -30,8 +30,8 @@ class GeneratePoofControllerTest {
   @Test
   @SneakyThrows
   void generateReturnsOk() {
-    GenerateRequest generateRequest =
-        new GenerateRequest()
+    PoofRequest request =
+        new PoofRequest()
             .projectMetadata(
                 new ProjectMetadata()
                     .group("dev.pollito")
@@ -44,9 +44,9 @@ class GeneratePoofControllerTest {
     HttpHeaders headers = new HttpHeaders();
     headers.add(
         "Content-Disposition",
-        "attachment; filename=" + generateRequest.getProjectMetadata().getArtifact() + ".zip");
+        "attachment; filename=" + request.getProjectMetadata().getArtifact() + ".zip");
 
-    when(generatePoofService.generateFiles(any(GenerateRequest.class)))
+    when(generatePoofService.generateFiles(any(PoofRequest.class)))
         .thenReturn(byteArrayOutputStream);
 
     ResponseEntity<Resource> expectedResponse =
@@ -57,7 +57,7 @@ class GeneratePoofControllerTest {
                 new InputStreamResource(
                     new ByteArrayInputStream(byteArrayOutputStream.toByteArray())));
 
-    ResponseEntity<Resource> actualResponse = generatePoofController.generate(generateRequest);
+    ResponseEntity<Resource> actualResponse = generatePoofController.generate(request);
     assertEquals(expectedResponse.getStatusCode(), actualResponse.getStatusCode());
     assertEquals(expectedResponse.getHeaders(), actualResponse.getHeaders());
     assertNotNull(actualResponse.getBody());
@@ -65,14 +65,14 @@ class GeneratePoofControllerTest {
 
   @Test
   void generateThrowsException() throws IOException {
-    GenerateRequest generateRequest = new GenerateRequest();
+    PoofRequest request = new PoofRequest();
 
-    when(generatePoofService.generateFiles(any(GenerateRequest.class)))
+    when(generatePoofService.generateFiles(any(PoofRequest.class)))
         .thenThrow(new IOException("Failed to generate files"));
 
     assertEquals(
         "Failed to generate files",
-        assertThrows(IOException.class, () -> generatePoofController.generate(generateRequest))
+        assertThrows(IOException.class, () -> generatePoofController.generate(request))
             .getMessage());
   }
 }

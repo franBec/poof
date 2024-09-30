@@ -1,6 +1,6 @@
 package dev.pollito.poof.util;
 
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import java.io.File;
 import java.io.IOException;
@@ -17,23 +17,22 @@ public class PoofUtil {
       @NotNull File folder,
       String parentFolder,
       ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest)
+      PoofRequest request)
       throws IOException {
     File[] files = folder.listFiles();
 
     if (Objects.nonNull(files)) {
       for (File file : files) {
-        String zipEntryName =
-            getNewZipEntryName(parentFolder, file, generateRequest.getProjectMetadata());
+        String zipEntryName = getNewZipEntryName(parentFolder, file, request.getProjectMetadata());
 
         if (file.isDirectory()) {
-          zipFolder(file, zipEntryName + "/", zipOutputStream, generateRequest);
+          zipFolder(file, zipEntryName + "/", zipOutputStream, request);
         } else if ("pom.xml".equals(file.getName())) {
-          PomXmlUtil.addFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
+          PomXmlUtil.addFileToZip(zipOutputStream, request, file, zipEntryName);
         } else if ("application.yml".equals(file.getName())) {
-          ApplicationYmlUtil.addFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
+          ApplicationYmlUtil.addFileToZip(zipOutputStream, request, file, zipEntryName);
         } else if (file.getName().endsWith(".java")) {
-          JavaFileUtil.addFileToZip(zipOutputStream, generateRequest, file, zipEntryName);
+          JavaFileUtil.addFileToZip(zipOutputStream, request, file, zipEntryName);
         } else {
           ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream);
         }

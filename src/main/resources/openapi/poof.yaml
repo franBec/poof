@@ -20,7 +20,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GenerateRequest'
+              $ref: '#/components/schemas/PoofRequest'
       responses:
         '200':
           description: Spring Boot 3 Project in zip file
@@ -94,19 +94,6 @@ components:
           example: "about:blank"
           type: string
       type: object
-    GenerateRequest:
-      properties:
-        contracts:
-          $ref: '#/components/schemas/Contracts'
-        options:
-          $ref: '#/components/schemas/Options'
-        projectMetadata:
-          $ref: '#/components/schemas/ProjectMetadata'
-      required:
-        - contracts
-        - options
-        - projectMetadata
-      type: object
     Options:
       properties:
         allowCorsFromAnySource:
@@ -121,6 +108,19 @@ components:
         loggingAspect:
           default: true
           type: boolean
+      type: object
+    PoofRequest:
+      properties:
+        contracts:
+          $ref: '#/components/schemas/Contracts'
+        options:
+          $ref: '#/components/schemas/Options'
+        projectMetadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+      required:
+        - contracts
+        - options
+        - projectMetadata
       type: object
     ProjectMetadata:
       properties:

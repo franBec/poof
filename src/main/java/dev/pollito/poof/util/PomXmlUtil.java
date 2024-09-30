@@ -1,7 +1,7 @@
 package dev.pollito.poof.util;
 
 import dev.pollito.poof.model.Contract;
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -88,46 +88,38 @@ public class PomXmlUtil {
                   """;
 
   public static void addFileToZip(
-      ZipOutputStream zipOutputStream,
-      GenerateRequest generateRequest,
-      File file,
-      String zipEntryName)
+      ZipOutputStream zipOutputStream, PoofRequest request, File file, String zipEntryName)
       throws IOException {
-    ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream, pomXmlReplacements(generateRequest));
+    ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream, pomXmlReplacements(request));
   }
 
-  private static @NotNull Map<String, String> pomXmlReplacements(
-      @NotNull GenerateRequest generateRequest) {
+  private static @NotNull Map<String, String> pomXmlReplacements(@NotNull PoofRequest request) {
     Map<String, String> replacements = new HashMap<>();
-    replacements.put("<!--groupId-->", generateRequest.getProjectMetadata().getGroup());
-    replacements.put("<!--artifactId-->", generateRequest.getProjectMetadata().getArtifact());
-    replacements.put("<!--description-->", generateRequest.getProjectMetadata().getDescription());
-    replacements.put("<!--aspectj-->", aspectjReplacement(generateRequest));
-    replacements.put(
-        "<!--consumer dependencies-->", consumerDependenciesReplacement(generateRequest));
-    replacements.put("<!--consumer generation-->", consumerGenerationReplacement(generateRequest));
+    replacements.put("<!--groupId-->", request.getProjectMetadata().getGroup());
+    replacements.put("<!--artifactId-->", request.getProjectMetadata().getArtifact());
+    replacements.put("<!--description-->", request.getProjectMetadata().getDescription());
+    replacements.put("<!--aspectj-->", aspectjReplacement(request));
+    replacements.put("<!--consumer dependencies-->", consumerDependenciesReplacement(request));
+    replacements.put("<!--consumer generation-->", consumerGenerationReplacement(request));
 
     return replacements;
   }
 
-  private static String consumerDependenciesReplacement(@NotNull GenerateRequest generateRequest) {
-    return generateRequest.getContracts().getConsumerContracts().isEmpty()
-        ? ""
-        : CONSUMER_DEPENDENCIES;
+  private static String consumerDependenciesReplacement(@NotNull PoofRequest request) {
+    return request.getContracts().getConsumerContracts().isEmpty() ? "" : CONSUMER_DEPENDENCIES;
   }
 
-  private static @NotNull String aspectjReplacement(@NotNull GenerateRequest generateRequest) {
-    return Boolean.TRUE.equals(generateRequest.getOptions().getLoggingAspect()) ? ASPECTJ : "";
+  private static @NotNull String aspectjReplacement(@NotNull PoofRequest request) {
+    return Boolean.TRUE.equals(request.getOptions().getLoggingAspect()) ? ASPECTJ : "";
   }
 
-  private static @NotNull String consumerGenerationReplacement(
-      @NotNull GenerateRequest generateRequest) {
-    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
+  private static @NotNull String consumerGenerationReplacement(@NotNull PoofRequest request) {
+    if (request.getContracts().getConsumerContracts().isEmpty()) {
       return "";
     }
 
     StringBuilder s = new StringBuilder();
-    for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
+    for (Contract contract : request.getContracts().getConsumerContracts()) {
       String packageName = contract.getPackageName();
       if (Objects.isNull(packageName)) {
         packageName = "com." + contract.getName();

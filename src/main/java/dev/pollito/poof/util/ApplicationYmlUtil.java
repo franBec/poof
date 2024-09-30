@@ -1,7 +1,7 @@
 package dev.pollito.poof.util;
 
 import dev.pollito.poof.model.Contract;
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,22 +21,17 @@ public class ApplicationYmlUtil {
                   """;
 
   public static void addFileToZip(
-      ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
-      File file,
-      String zipEntryName)
+      ZipOutputStream zipOutputStream, @NotNull PoofRequest request, File file, String zipEntryName)
       throws IOException {
-    ZipUtil.addFileToZip(
-        file, zipEntryName, zipOutputStream, applicationYmlReplacements(generateRequest));
+    ZipUtil.addFileToZip(file, zipEntryName, zipOutputStream, applicationYmlReplacements(request));
   }
 
   private static @NotNull Map<String, String> applicationYmlReplacements(
-      @NotNull GenerateRequest generateRequest) {
+      @NotNull PoofRequest request) {
     Map<String, String> replacements = new HashMap<>();
-    replacements.put("#artifact", generateRequest.getProjectMetadata().getArtifact());
+    replacements.put("#artifact", request.getProjectMetadata().getArtifact());
     replacements.put(
-        "#clienturls",
-        clientUrlsReplacement(generateRequest.getContracts().getConsumerContracts()));
+        "#clienturls", clientUrlsReplacement(request.getContracts().getConsumerContracts()));
     return replacements;
   }
 

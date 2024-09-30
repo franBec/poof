@@ -4,7 +4,7 @@ import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
 
 import dev.pollito.poof.consumer.QuadConsumer;
 import dev.pollito.poof.model.Contract;
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class JavaFileUtil {
 
   public static void addFileToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       @NotNull String zipEntryName)
       throws IOException {
@@ -48,9 +48,9 @@ public class JavaFileUtil {
       }
     }
 
-    Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> actionMap =
+    Map<String, QuadConsumer<ZipOutputStream, PoofRequest, File, String>> actionMap =
         buildActionMap();
-    for (Map.Entry<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> entry :
+    for (Map.Entry<String, QuadConsumer<ZipOutputStream, PoofRequest, File, String>> entry :
         actionMap.entrySet()) {
       if (zipEntryName.contains(entry.getKey())) {
         entry.getValue().accept(zipOutputStream, request, file, zipEntryName);
@@ -62,9 +62,9 @@ public class JavaFileUtil {
         file, zipEntryName, zipOutputStream, javaReplacements(request.getProjectMetadata()));
   }
 
-  private static @NotNull Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>>
+  private static @NotNull Map<String, QuadConsumer<ZipOutputStream, PoofRequest, File, String>>
       buildActionMap() {
-    Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> actionMap =
+    Map<String, QuadConsumer<ZipOutputStream, PoofRequest, File, String>> actionMap =
         new HashMap<>();
     actionMap.put(CONSUMER_EXCEPTION_JAVA, JavaFileUtil::addConsumerExceptionsToZip);
     actionMap.put(DEMO_APPLICATION_JAVA, JavaFileUtil::addJavaMainToZip);
@@ -78,7 +78,7 @@ public class JavaFileUtil {
   @SneakyThrows
   private static void addConsumerErrorDecoderToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       String zipEntryName) {
     for (Contract contract : request.getContracts().getConsumerContracts()) {
@@ -97,7 +97,7 @@ public class JavaFileUtil {
   @SneakyThrows
   private static void addGlobalControllerAdviceToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       String zipEntryName) {
     Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
@@ -130,8 +130,7 @@ public class JavaFileUtil {
   }
 
   @NotNull
-  private static List<Map.Entry<String, Boolean>> buildConditionsMap(
-      @NotNull GenerateRequest request) {
+  private static List<Map.Entry<String, Boolean>> buildConditionsMap(@NotNull PoofRequest request) {
     return Arrays.asList(
         new AbstractMap.SimpleEntry<>(
             "aspect/LoggingAspect.java", request.getOptions().getLoggingAspect()),
@@ -155,7 +154,7 @@ public class JavaFileUtil {
   @SneakyThrows
   private static void addJavaMainTestToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       @NotNull String zipEntryName) {
     ZipUtil.addFileToZip(
@@ -171,7 +170,7 @@ public class JavaFileUtil {
   @SneakyThrows
   private static void addJavaMainToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       @NotNull String zipEntryName) {
     ZipUtil.addFileToZip(
@@ -186,7 +185,7 @@ public class JavaFileUtil {
   @SneakyThrows
   private static void addConsumerExceptionsToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest request,
+      @NotNull PoofRequest request,
       File file,
       @NotNull String zipEntryName) {
     for (Contract contract : request.getContracts().getConsumerContracts()) {

@@ -1,7 +1,7 @@
 package dev.pollito.poof.controller;
 
 import dev.pollito.poof.api.GenerateApi;
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.service.GeneratePoofService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,9 +20,8 @@ public class GeneratePoofController implements GenerateApi {
 
   @Override
   @SneakyThrows
-  public ResponseEntity<Resource> generate(GenerateRequest generateRequest) {
-    ByteArrayOutputStream byteArrayOutputStream =
-        generatePoofService.generateFiles(generateRequest);
+  public ResponseEntity<Resource> generate(PoofRequest request) {
+    ByteArrayOutputStream byteArrayOutputStream = generatePoofService.generateFiles(request);
 
     InputStreamResource resource =
         new InputStreamResource(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
@@ -30,7 +29,7 @@ public class GeneratePoofController implements GenerateApi {
     HttpHeaders headers = new HttpHeaders();
     headers.add(
         "Content-Disposition",
-        "attachment; filename=" + generateRequest.getProjectMetadata().getArtifact() + ".zip");
+        "attachment; filename=" + request.getProjectMetadata().getArtifact() + ".zip");
 
     return ResponseEntity.ok()
         .headers(headers)

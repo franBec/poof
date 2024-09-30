@@ -3,7 +3,7 @@ package dev.pollito.poof.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.pollito.poof.model.GenerateRequest;
+import dev.pollito.poof.model.PoofRequest;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public class PomXmlAssertions {
   private PomXmlAssertions() {}
 
-  public static void pomXmlAssertions(@NotNull GenerateRequest request, String pomXmlContent) {
+  public static void pomXmlAssertions(@NotNull PoofRequest request, String pomXmlContent) {
     pomXmlBasicInfoAssertions(pomXmlContent);
     pomXmlAspectjAssertions(request, pomXmlContent);
     pomXmlProviderGenerationAssertions(pomXmlContent);
@@ -20,7 +20,7 @@ public class PomXmlAssertions {
   }
 
   private static void pomXmlConsumerGenerationPluginConfigAssertions(
-      @NotNull GenerateRequest request, String pomXmlContent) {
+      @NotNull PoofRequest request, String pomXmlContent) {
     int consumerContractsSize = request.getContracts().getConsumerContracts().size();
     List<String> pluginTags =
         List.of(
@@ -71,7 +71,7 @@ public class PomXmlAssertions {
   }
 
   private static void pomXmlConsumerGenerationDependenciesAssertions(
-      @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
+      @NotNull PoofRequest request, @NotNull String pomXmlContent) {
     List<String> dependencies =
         List.of(
             "<artifactId>javax.annotation-api</artifactId>",
@@ -108,7 +108,7 @@ public class PomXmlAssertions {
   }
 
   private static void pomXmlAspectjAssertions(
-      @NotNull GenerateRequest request, @NotNull String pomXmlContent) {
+      @NotNull PoofRequest request, @NotNull String pomXmlContent) {
     String aspectjArtifactId = "<artifactId>aspectjtools</artifactId>";
     boolean expected = request.getOptions().getLoggingAspect();
 
