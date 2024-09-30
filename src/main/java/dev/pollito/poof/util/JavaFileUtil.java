@@ -2,6 +2,7 @@ package dev.pollito.poof.util;
 
 import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
 
+import dev.pollito.poof.consumer.QuadConsumer;
 import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.GenerateRequest;
 import dev.pollito.poof.model.ProjectMetadata;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipOutputStream;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaFileUtil {
@@ -36,42 +38,51 @@ public class JavaFileUtil {
 
   public static void addFileToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
       @NotNull String zipEntryName)
       throws IOException {
-    for (Map.Entry<String, Boolean> condition : buildConditionsMap(generateRequest)) {
+    for (Map.Entry<String, Boolean> condition : buildConditionsMap(request)) {
       if (skipFile(zipEntryName, condition.getKey(), condition.getValue())) {
         return;
       }
     }
-    if (zipEntryName.contains(CONSUMER_EXCEPTION_JAVA)) {
-      addConsumerExceptionsToZip(zipOutputStream, generateRequest, file, zipEntryName);
-    } else if (zipEntryName.contains(DEMO_APPLICATION_JAVA)) {
-      addJavaMainToZip(zipOutputStream, generateRequest, file, zipEntryName);
-    } else if (zipEntryName.contains(DEMO_APPLICATION_TESTS_JAVA)) {
-      addJavaMainTestToZip(zipOutputStream, generateRequest, file, zipEntryName);
-    } else if (zipEntryName.contains(GLOBAL_CONTROLLER_ADVICE_JAVA)) {
-      addGlobalControllerAdviceToZip(zipOutputStream, generateRequest, file, zipEntryName);
-    } else if (zipEntryName.contains(CONSUMER_ERROR_DECODER_JAVA)) {
-      addConsumerErrorDecoderToZip(zipOutputStream, generateRequest, file, zipEntryName);
-    } else {
-      ZipUtil.addFileToZip(
-          file,
-          zipEntryName,
-          zipOutputStream,
-          javaReplacements(generateRequest.getProjectMetadata()));
+
+    Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> actionMap =
+        buildActionMap();
+    for (Map.Entry<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> entry :
+        actionMap.entrySet()) {
+      if (zipEntryName.contains(entry.getKey())) {
+        entry.getValue().accept(zipOutputStream, request, file, zipEntryName);
+        return;
+      }
     }
+
+    ZipUtil.addFileToZip(
+        file, zipEntryName, zipOutputStream, javaReplacements(request.getProjectMetadata()));
   }
 
+  private static @NotNull Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>>
+      buildActionMap() {
+    Map<String, QuadConsumer<ZipOutputStream, GenerateRequest, File, String>> actionMap =
+        new HashMap<>();
+    actionMap.put(CONSUMER_EXCEPTION_JAVA, JavaFileUtil::addConsumerExceptionsToZip);
+    actionMap.put(DEMO_APPLICATION_JAVA, JavaFileUtil::addJavaMainToZip);
+    actionMap.put(DEMO_APPLICATION_TESTS_JAVA, JavaFileUtil::addJavaMainTestToZip);
+    actionMap.put(GLOBAL_CONTROLLER_ADVICE_JAVA, JavaFileUtil::addGlobalControllerAdviceToZip);
+    actionMap.put(CONSUMER_ERROR_DECODER_JAVA, JavaFileUtil::addConsumerErrorDecoderToZip);
+
+    return actionMap;
+  }
+
+  @SneakyThrows
   private static void addConsumerErrorDecoderToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
-      String zipEntryName)
-      throws IOException {
-    for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
-      Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
+      String zipEntryName) {
+    for (Contract contract : request.getContracts().getConsumerContracts()) {
+      Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
       replacements.put("/*Consumer*/", capitalizeFirstLetter(contract.getName()));
       ZipUtil.addFileToZip(
           file,
@@ -83,27 +94,27 @@ public class JavaFileUtil {
     }
   }
 
+  @SneakyThrows
   private static void addGlobalControllerAdviceToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
-      String zipEntryName)
-      throws IOException {
-    Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
+      String zipEntryName) {
+    Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
     String consumerExceptionImportsTarget = "/*ConsumerExceptionImports*/";
     String consumerExceptionHandlersTarget = "/*ConsumerExceptionHandlers*/";
-    if (generateRequest.getContracts().getConsumerContracts().isEmpty()) {
+    if (request.getContracts().getConsumerContracts().isEmpty()) {
       replacements.put(consumerExceptionImportsTarget, "");
       replacements.put(consumerExceptionHandlersTarget, "");
     } else {
       StringBuilder consumerExceptionsImports = new StringBuilder();
       StringBuilder consumerExceptionsHandlers = new StringBuilder();
-      for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
+      for (Contract contract : request.getContracts().getConsumerContracts()) {
         consumerExceptionsImports
             .append("\nimport ")
-            .append(generateRequest.getProjectMetadata().getGroup())
+            .append(request.getProjectMetadata().getGroup())
             .append(".")
-            .append(generateRequest.getProjectMetadata().getArtifact())
+            .append(request.getProjectMetadata().getArtifact())
             .append(".exception.")
             .append(capitalizeFirstLetter(contract.getName()))
             .append("Exception;");
@@ -120,67 +131,66 @@ public class JavaFileUtil {
 
   @NotNull
   private static List<Map.Entry<String, Boolean>> buildConditionsMap(
-      @NotNull GenerateRequest generateRequest) {
+      @NotNull GenerateRequest request) {
     return Arrays.asList(
         new AbstractMap.SimpleEntry<>(
-            "aspect/LoggingAspect.java", generateRequest.getOptions().getLoggingAspect()),
+            "aspect/LoggingAspect.java", request.getOptions().getLoggingAspect()),
         new AbstractMap.SimpleEntry<>(
-            "config/WebConfig.java", generateRequest.getOptions().getAllowCorsFromAnySource()),
+            "config/WebConfig.java", request.getOptions().getAllowCorsFromAnySource()),
         new AbstractMap.SimpleEntry<>(
             "controller/advice/" + GLOBAL_CONTROLLER_ADVICE_JAVA,
-            generateRequest.getOptions().getControllerAdvice()),
+            request.getOptions().getControllerAdvice()),
         new AbstractMap.SimpleEntry<>(
-            "config/LogFilterConfig.java", generateRequest.getOptions().getLogFilter()),
+            "config/LogFilterConfig.java", request.getOptions().getLogFilter()),
         new AbstractMap.SimpleEntry<>(
             "errordecoder/" + CONSUMER_ERROR_DECODER_JAVA,
-            !generateRequest.getContracts().getConsumerContracts().isEmpty()),
+            !request.getContracts().getConsumerContracts().isEmpty()),
         new AbstractMap.SimpleEntry<>(
             "exception/" + CONSUMER_EXCEPTION_JAVA,
-            !generateRequest.getContracts().getConsumerContracts().isEmpty()),
+            !request.getContracts().getConsumerContracts().isEmpty()),
         new AbstractMap.SimpleEntry<>(
-            "filter/LogFilter.java", generateRequest.getOptions().getLogFilter()));
+            "filter/LogFilter.java", request.getOptions().getLogFilter()));
   }
 
+  @SneakyThrows
   private static void addJavaMainTestToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
-      @NotNull String zipEntryName)
-      throws IOException {
+      @NotNull String zipEntryName) {
     ZipUtil.addFileToZip(
         file,
         zipEntryName.replace(
             DEMO_APPLICATION_TESTS_JAVA,
-            capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact())
+            capitalizeFirstLetter(request.getProjectMetadata().getArtifact())
                 + "ApplicationTests.java"),
         zipOutputStream,
-        javaReplacements(generateRequest.getProjectMetadata()));
+        javaReplacements(request.getProjectMetadata()));
   }
 
+  @SneakyThrows
   private static void addJavaMainToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
-      @NotNull String zipEntryName)
-      throws IOException {
+      @NotNull String zipEntryName) {
     ZipUtil.addFileToZip(
         file,
         zipEntryName.replace(
             DEMO_APPLICATION_JAVA,
-            capitalizeFirstLetter(generateRequest.getProjectMetadata().getArtifact())
-                + "Application.java"),
+            capitalizeFirstLetter(request.getProjectMetadata().getArtifact()) + "Application.java"),
         zipOutputStream,
-        javaReplacements(generateRequest.getProjectMetadata()));
+        javaReplacements(request.getProjectMetadata()));
   }
 
+  @SneakyThrows
   private static void addConsumerExceptionsToZip(
       ZipOutputStream zipOutputStream,
-      @NotNull GenerateRequest generateRequest,
+      @NotNull GenerateRequest request,
       File file,
-      @NotNull String zipEntryName)
-      throws IOException {
-    for (Contract contract : generateRequest.getContracts().getConsumerContracts()) {
-      Map<String, String> replacements = javaReplacements(generateRequest.getProjectMetadata());
+      @NotNull String zipEntryName) {
+    for (Contract contract : request.getContracts().getConsumerContracts()) {
+      Map<String, String> replacements = javaReplacements(request.getProjectMetadata());
       replacements.put("/*Consumer*/", capitalizeFirstLetter(contract.getName()));
       ZipUtil.addFileToZip(
           file,
@@ -192,9 +202,8 @@ public class JavaFileUtil {
     }
   }
 
-  private static boolean skipFile(
-      @NotNull String zipEntryName, String key, Boolean generateRequest) {
-    return zipEntryName.endsWith(key) && !generateRequest;
+  private static boolean skipFile(@NotNull String zipEntryName, String key, Boolean condition) {
+    return zipEntryName.endsWith(key) && !condition;
   }
 
   private static @NotNull Map<String, String> javaReplacements(
