@@ -1,12 +1,10 @@
 package dev.pollito.poof.util;
 
-import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.PoofRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +64,7 @@ public class PomXmlUtil {
   public static final String CONSUMER_EXECUTION_BLOCK =
       """
 
-                                      <execution>
+                                      <!--<execution>
                                           <id>consumer generation - <!--name--></id>
                                           <goals>
                                               <goal>generate</goal>
@@ -84,7 +82,7 @@ public class PomXmlUtil {
                                                   <useEnumCaseInsensitive>true</useEnumCaseInsensitive>
                                               </configOptions>
                                           </configuration>
-                                      </execution>
+                                      </execution>-->
                   """;
 
   public static void addFileToZip(
@@ -106,7 +104,9 @@ public class PomXmlUtil {
   }
 
   private static String consumerDependenciesReplacement(@NotNull PoofRequest request) {
-    return request.getContracts().getConsumerContracts().isEmpty() ? "" : CONSUMER_DEPENDENCIES;
+    return Boolean.TRUE.equals(request.getOptions().getConsumeOtherServices())
+        ? CONSUMER_DEPENDENCIES
+        : "";
   }
 
   private static @NotNull String aspectjReplacement(@NotNull PoofRequest request) {
@@ -114,24 +114,8 @@ public class PomXmlUtil {
   }
 
   private static @NotNull String consumerGenerationReplacement(@NotNull PoofRequest request) {
-    if (request.getContracts().getConsumerContracts().isEmpty()) {
-      return "";
-    }
-
-    StringBuilder s = new StringBuilder();
-    for (Contract contract : request.getContracts().getConsumerContracts()) {
-      String packageName = contract.getPackageName();
-      if (Objects.isNull(packageName)) {
-        packageName = "com." + contract.getName().toLowerCase();
-      }
-
-      s.append(
-          CONSUMER_EXECUTION_BLOCK
-              .replace("<!--name-->", contract.getName())
-              .replace("<!--apiPackage-->", packageName + ".api")
-              .replace("<!--modelPackage-->", packageName + ".model"));
-    }
-
-    return s.toString();
+    return Boolean.TRUE.equals(request.getOptions().getConsumeOtherServices())
+        ? CONSUMER_EXECUTION_BLOCK
+        : "";
   }
 }

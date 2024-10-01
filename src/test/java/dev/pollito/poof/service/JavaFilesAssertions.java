@@ -1,7 +1,5 @@
 package dev.pollito.poof.service;
 
-import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -28,161 +26,19 @@ public class JavaFilesAssertions {
     if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
       aspectAssertions(request, javaFileContent);
     }
-    if (entryName.startsWith("src/main/java/dev/pollito/poof/config/properties/")) {
-      consumerConfigPropertiesAssertions(request, entryName, javaFileContent);
-    }
     if (entryName.equals(
         "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
-      controllerAdviceAssertions(request, javaFileContent);
-    }
-    if (entryName.startsWith("src/main/java/dev/pollito/poof/errordecoder/")) {
-      consumerErrorDecoderAssertions(request, entryName, javaFileContent);
-    }
-    if (entryName.startsWith("src/main/java/dev/pollito/poof/exception/")) {
-      consumerExceptionAssertions(request, entryName, javaFileContent);
+      controllerAdviceAssertions(javaFileContent);
     }
   }
 
-  private static void consumerConfigPropertiesAssertions(
-      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    long fileNameCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "src/main/java/dev/pollito/poof/config/properties/"
-                        + capitalizeFirstLetter(contract.getName())
-                        + "ConfigProperties.java")
-            .filter(entryName::contains)
-            .count();
-    assertEquals(
-        1,
-        fileNameCount,
-        "Consumer Config Properties generated should contain one match of the possible names, but found "
-            + fileNameCount);
-
-    long classDefinitionCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "public class "
-                        + capitalizeFirstLetter(contract.getName())
-                        + "ConfigProperties {")
-            .filter(javaFileContent::contains)
-            .count();
-
-    assertEquals(
-        1,
-        classDefinitionCount,
-        "Consumer Config Properties generated should contain one match of the possible class definition, but found "
-            + classDefinitionCount);
-  }
-
-  private static void consumerExceptionAssertions(
-      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    long fileNameCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "src/main/java/dev/pollito/poof/exception/"
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception.java")
-            .filter(entryName::contains)
-            .count();
-    assertEquals(
-        1,
-        fileNameCount,
-        "Consumer Exception generated should contain one match of the possible names, but found "
-            + fileNameCount);
-
-    long classDefinitionCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "public class "
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception extends RuntimeException {")
-            .filter(javaFileContent::contains)
-            .count();
-
-    assertEquals(
-        1,
-        classDefinitionCount,
-        "Consumer Exception generated should contain one match of the possible class definition, but found "
-            + classDefinitionCount);
-  }
-
-  private static void consumerErrorDecoderAssertions(
-      @NotNull PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
-    long fileNameCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "src/main/java/dev/pollito/poof/errordecoder/"
-                        + capitalizeFirstLetter(contract.getName())
-                        + "ErrorDecoder.java")
-            .filter(entryName::contains)
-            .count();
-    assertEquals(
-        1,
-        fileNameCount,
-        "Consumer Error Decoder generated should contain one match of the possible names, but found "
-            + fileNameCount);
-
-    long classDefinitionCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "public class "
-                        + capitalizeFirstLetter(contract.getName())
-                        + "ErrorDecoder implements ErrorDecoder {")
-            .filter(javaFileContent::contains)
-            .count();
-
-    assertEquals(
-        1,
-        classDefinitionCount,
-        "Error Decoder generated should contain one match of the possible class definition, but found "
-            + classDefinitionCount);
-
-    long exceptionReturnedCount =
-        request.getContracts().getConsumerContracts().stream()
-            .map(
-                contract ->
-                    "return new "
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception(new String(body.readAllBytes(), StandardCharsets.UTF_8));")
-            .filter(javaFileContent::contains)
-            .count();
-
-    assertEquals(
-        1,
-        classDefinitionCount,
-        "Error Decoder generated should contain one match of the possible exception returns, but found "
-            + exceptionReturnedCount);
-  }
-
-  private static void controllerAdviceAssertions(
-      @NotNull PoofRequest request, @NotNull String javaFileContent) {
+  private static void controllerAdviceAssertions(@NotNull String javaFileContent) {
     assertFalse(
         javaFileContent.contains("/*ConsumerExceptionImports*/"),
         "GlobalControllerAdvice.java should not contain /*ConsumerExceptionImports*/");
     assertFalse(
         javaFileContent.contains("/*ConsumerExceptionHandlers*/"),
         "GlobalControllerAdvice.java should not contain /*ConsumerExceptionHandlers*/");
-
-    request
-        .getContracts()
-        .getConsumerContracts()
-        .forEach(
-            contract ->
-                assertTrue(
-                    javaFileContent.contains(
-                        "import dev.pollito.poof.exception."
-                            + capitalizeFirstLetter(contract.getName())
-                            + "Exception;"),
-                    "GlobalControllerAdvice.java should contain import dev.pollito.poof.exception."
-                        + capitalizeFirstLetter(contract.getName())
-                        + "Exception;"));
   }
 
   private static void aspectAssertions(@NotNull PoofRequest request, String aspectContent) {

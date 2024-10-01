@@ -5,8 +5,6 @@ import dev.pollito.poof.model.PoofRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.NotNull;
@@ -16,15 +14,7 @@ public class Base64Util {
 
   public static void addBase64FilesToZip(
       @NotNull PoofRequest request, ZipOutputStream zipOutputStream) throws IOException {
-
-    addContractToZip(request.getContracts().getProviderContract(), zipOutputStream);
-
-    List<Contract> consumerContracts = request.getContracts().getConsumerContracts();
-    if (Objects.nonNull(consumerContracts) && !consumerContracts.isEmpty()) {
-      for (Contract consumerContract : consumerContracts) {
-        addContractToZip(consumerContract, zipOutputStream);
-      }
-    }
+    addContractToZip(request.getContract(), zipOutputStream);
   }
 
   private static void addContractToZip(

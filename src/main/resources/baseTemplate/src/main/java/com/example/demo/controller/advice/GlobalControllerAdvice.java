@@ -1,5 +1,4 @@
 package /*group*/./*artifact*/.controller.advice;
-/*ConsumerExceptionImports*/
 import io.opentelemetry.api.trace.Span;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalControllerAdvice {/*ConsumerExceptionHandlers*/
+public class GlobalControllerAdvice {
 
   @ExceptionHandler(Exception.class)
   public ProblemDetail handle(@NotNull Exception e) {

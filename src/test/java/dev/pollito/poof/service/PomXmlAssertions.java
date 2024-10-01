@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.pollito.poof.model.PoofRequest;
 import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class PomXmlAssertions {
@@ -20,54 +19,13 @@ public class PomXmlAssertions {
   }
 
   private static void pomXmlConsumerGenerationPluginConfigAssertions(
-      @NotNull PoofRequest request, String pomXmlContent) {
-    int consumerContractsSize = request.getContracts().getConsumerContracts().size();
-    List<String> pluginTags =
-        List.of(
-            "<generatorName>java</generatorName>",
-            "<library>feign</library>",
-            "<feignClient>true</feignClient>");
-
-    pluginTags.forEach(
-        tag -> {
-          long actualOccurrences = pomXmlContent.split(tag, -1).length - 1;
-          assertEquals(
-              consumerContractsSize,
-              actualOccurrences,
-              "The tag '"
-                  + tag
-                  + "' did not appear "
-                  + consumerContractsSize
-                  + " times in the POM XML content.");
-        });
-
-    request
-        .getContracts()
-        .getConsumerContracts()
-        .forEach(
-            contract -> {
-              assertTrue(
-                  pomXmlContent.contains(
-                      "<id>consumer generation - " + contract.getName() + "</id>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin execution id");
-              assertTrue(
-                  pomXmlContent.contains(
-                      "<inputSpec>${project.basedir}/src/main/resources/openapi/"
-                          + contract.getName()
-                          + ".yaml</inputSpec>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin inputSpec id");
-
-              String packageName = contract.getPackageName();
-              if (Objects.isNull(packageName)) {
-                packageName = "com." + contract.getName();
-              }
-              assertTrue(
-                  pomXmlContent.contains("<apiPackage>" + packageName + ".api</apiPackage>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin <apiPackage>");
-              assertTrue(
-                  pomXmlContent.contains("<modelPackage>" + packageName + ".model</modelPackage>"),
-                  "pom.xml should contain the correct openapi-generator-maven-plugin <modelPackage>");
-            });
+      @NotNull PoofRequest request, @NotNull String pomXmlContent) {
+    boolean expected = request.getOptions().getConsumeOtherServices();
+    String idTag = "<id>consumer generation - <!--name--></id>";
+    assertEquals(
+        expected,
+        pomXmlContent.contains(idTag),
+        "pom.xml should " + (expected ? "" : "not ") + "contain " + idTag);
   }
 
   private static void pomXmlConsumerGenerationDependenciesAssertions(
@@ -81,7 +39,7 @@ public class PomXmlAssertions {
             "<artifactId>jsr305</artifactId>",
             "<artifactId>junit-jupiter-api</artifactId>",
             "<artifactId>feign-gson</artifactId>");
-    boolean expected = !request.getContracts().getConsumerContracts().isEmpty();
+    boolean expected = request.getOptions().getConsumeOtherServices();
 
     dependencies.forEach(
         dependency ->

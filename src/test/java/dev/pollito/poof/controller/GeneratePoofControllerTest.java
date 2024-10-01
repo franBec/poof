@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import dev.pollito.poof.model.Options;
 import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
 import dev.pollito.poof.service.GeneratePoofService;
@@ -36,8 +35,7 @@ class GeneratePoofControllerTest {
                 new ProjectMetadata()
                     .group("dev.pollito")
                     .artifact("poof")
-                    .description("poof - Pollito Over Opinionated Framework"))
-            .options(new Options().loggingAspect(true));
+                    .description("poof - Pollito Over Opinionated Framework"));
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     byteArrayOutputStream.write("sample content".getBytes());
 

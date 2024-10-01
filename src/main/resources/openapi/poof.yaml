@@ -101,6 +101,9 @@ components:
         allowCorsFromAnySource:
           default: true
           type: boolean
+        consumeOtherServices:
+          default: false
+          type: boolean
         controllerAdvice:
           default: true
           type: boolean
@@ -113,14 +116,14 @@ components:
       type: object
     PoofRequest:
       properties:
-        contracts:
-          $ref: '#/components/schemas/Contracts'
+        contract:
+          $ref: '#/components/schemas/Contract'
         options:
           $ref: '#/components/schemas/Options'
         projectMetadata:
           $ref: '#/components/schemas/ProjectMetadata'
       required:
-        - contracts
+        - contract
         - options
         - projectMetadata
       type: object
