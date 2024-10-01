@@ -1,8 +1,8 @@
 package dev.pollito.poof.service;
 
+import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import dev.pollito.poof.model.Contract;
 import dev.pollito.poof.model.Options;
 import dev.pollito.poof.model.PoofRequest;
 import dev.pollito.poof.model.ProjectMetadata;
@@ -32,16 +32,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class GeneratePoofServiceTest {
   @InjectMocks private GeneratePoofServiceImpl generatePoofService;
 
-  private static final String PROJECT_METADATA_GROUP = "dev.pollito";
-  private static final String PROJECT_METADATA_ARTIFACT = "poof";
-  private static final String PROJECT_METADATA_DESCRIPTION =
-      "poof - Pollito Over Opinionated Framework";
-
-  public static final String PETSTORE = "petstore";
-  private static final Map<String, String> BASE64_OAS_FILE =
-      Map.of(
-          PETSTORE,
-          "b3BlbmFwaTogIjMuMC4wIgppbmZvOgogIHZlcnNpb246IDEuMC4wCiAgdGl0bGU6IFN3YWdnZXIgUGV0c3RvcmUKICBsaWNlbnNlOgogICAgbmFtZTogTUlUCnNlcnZlcnM6CiAgLSB1cmw6IGh0dHA6Ly9wZXRzdG9yZS5zd2FnZ2VyLmlvL3YxCnBhdGhzOgogIC9wZXRzOgogICAgZ2V0OgogICAgICBzdW1tYXJ5OiBMaXN0IGFsbCBwZXRzCiAgICAgIG9wZXJhdGlvbklkOiBsaXN0UGV0cwogICAgICB0YWdzOgogICAgICAgIC0gcGV0cwogICAgICBwYXJhbWV0ZXJzOgogICAgICAgIC0gbmFtZTogbGltaXQKICAgICAgICAgIGluOiBxdWVyeQogICAgICAgICAgZGVzY3JpcHRpb246IEhvdyBtYW55IGl0ZW1zIHRvIHJldHVybiBhdCBvbmUgdGltZSAobWF4IDEwMCkKICAgICAgICAgIHJlcXVpcmVkOiBmYWxzZQogICAgICAgICAgc2NoZW1hOgogICAgICAgICAgICB0eXBlOiBpbnRlZ2VyCiAgICAgICAgICAgIG1heGltdW06IDEwMAogICAgICAgICAgICBmb3JtYXQ6IGludDMyCiAgICAgIHJlc3BvbnNlczoKICAgICAgICAnMjAwJzoKICAgICAgICAgIGRlc2NyaXB0aW9uOiBBIHBhZ2VkIGFycmF5IG9mIHBldHMKICAgICAgICAgIGhlYWRlcnM6CiAgICAgICAgICAgIHgtbmV4dDoKICAgICAgICAgICAgICBkZXNjcmlwdGlvbjogQSBsaW5rIHRvIHRoZSBuZXh0IHBhZ2Ugb2YgcmVzcG9uc2VzCiAgICAgICAgICAgICAgc2NoZW1hOgogICAgICAgICAgICAgICAgdHlwZTogc3RyaW5nCiAgICAgICAgICBjb250ZW50OgogICAgICAgICAgICBhcHBsaWNhdGlvbi9qc29uOiAgICAKICAgICAgICAgICAgICBzY2hlbWE6CiAgICAgICAgICAgICAgICAkcmVmOiAiIy9jb21wb25lbnRzL3NjaGVtYXMvUGV0cyIKICAgICAgICBkZWZhdWx0OgogICAgICAgICAgZGVzY3JpcHRpb246IHVuZXhwZWN0ZWQgZXJyb3IKICAgICAgICAgIGNvbnRlbnQ6CiAgICAgICAgICAgIGFwcGxpY2F0aW9uL2pzb246CiAgICAgICAgICAgICAgc2NoZW1hOgogICAgICAgICAgICAgICAgJHJlZjogIiMvY29tcG9uZW50cy9zY2hlbWFzL0Vycm9yIgogICAgcG9zdDoKICAgICAgc3VtbWFyeTogQ3JlYXRlIGEgcGV0CiAgICAgIG9wZXJhdGlvbklkOiBjcmVhdGVQZXRzCiAgICAgIHRhZ3M6CiAgICAgICAgLSBwZXRzCiAgICAgIHJlcXVlc3RCb2R5OgogICAgICAgIGNvbnRlbnQ6CiAgICAgICAgICBhcHBsaWNhdGlvbi9qc29uOgogICAgICAgICAgICBzY2hlbWE6CiAgICAgICAgICAgICAgJHJlZjogJyMvY29tcG9uZW50cy9zY2hlbWFzL1BldCcKICAgICAgICByZXF1aXJlZDogdHJ1ZQogICAgICByZXNwb25zZXM6CiAgICAgICAgJzIwMSc6CiAgICAgICAgICBkZXNjcmlwdGlvbjogTnVsbCByZXNwb25zZQogICAgICAgIGRlZmF1bHQ6CiAgICAgICAgICBkZXNjcmlwdGlvbjogdW5leHBlY3RlZCBlcnJvcgogICAgICAgICAgY29udGVudDoKICAgICAgICAgICAgYXBwbGljYXRpb24vanNvbjoKICAgICAgICAgICAgICBzY2hlbWE6CiAgICAgICAgICAgICAgICAkcmVmOiAiIy9jb21wb25lbnRzL3NjaGVtYXMvRXJyb3IiCiAgL3BldHMve3BldElkfToKICAgIGdldDoKICAgICAgc3VtbWFyeTogSW5mbyBmb3IgYSBzcGVjaWZpYyBwZXQKICAgICAgb3BlcmF0aW9uSWQ6IHNob3dQZXRCeUlkCiAgICAgIHRhZ3M6CiAgICAgICAgLSBwZXRzCiAgICAgIHBhcmFtZXRlcnM6CiAgICAgICAgLSBuYW1lOiBwZXRJZAogICAgICAgICAgaW46IHBhdGgKICAgICAgICAgIHJlcXVpcmVkOiB0cnVlCiAgICAgICAgICBkZXNjcmlwdGlvbjogVGhlIGlkIG9mIHRoZSBwZXQgdG8gcmV0cmlldmUKICAgICAgICAgIHNjaGVtYToKICAgICAgICAgICAgdHlwZTogc3RyaW5nCiAgICAgIHJlc3BvbnNlczoKICAgICAgICAnMjAwJzoKICAgICAgICAgIGRlc2NyaXB0aW9uOiBFeHBlY3RlZCByZXNwb25zZSB0byBhIHZhbGlkIHJlcXVlc3QKICAgICAgICAgIGNvbnRlbnQ6CiAgICAgICAgICAgIGFwcGxpY2F0aW9uL2pzb246CiAgICAgICAgICAgICAgc2NoZW1hOgogICAgICAgICAgICAgICAgJHJlZjogIiMvY29tcG9uZW50cy9zY2hlbWFzL1BldCIKICAgICAgICBkZWZhdWx0OgogICAgICAgICAgZGVzY3JpcHRpb246IHVuZXhwZWN0ZWQgZXJyb3IKICAgICAgICAgIGNvbnRlbnQ6CiAgICAgICAgICAgIGFwcGxpY2F0aW9uL2pzb246CiAgICAgICAgICAgICAgc2NoZW1hOgogICAgICAgICAgICAgICAgJHJlZjogIiMvY29tcG9uZW50cy9zY2hlbWFzL0Vycm9yIgpjb21wb25lbnRzOgogIHNjaGVtYXM6CiAgICBQZXQ6CiAgICAgIHR5cGU6IG9iamVjdAogICAgICByZXF1aXJlZDoKICAgICAgICAtIGlkCiAgICAgICAgLSBuYW1lCiAgICAgIHByb3BlcnRpZXM6CiAgICAgICAgaWQ6CiAgICAgICAgICB0eXBlOiBpbnRlZ2VyCiAgICAgICAgICBmb3JtYXQ6IGludDY0CiAgICAgICAgbmFtZToKICAgICAgICAgIHR5cGU6IHN0cmluZwogICAgICAgIHRhZzoKICAgICAgICAgIHR5cGU6IHN0cmluZwogICAgUGV0czoKICAgICAgdHlwZTogYXJyYXkKICAgICAgbWF4SXRlbXM6IDEwMAogICAgICBpdGVtczoKICAgICAgICAkcmVmOiAiIy9jb21wb25lbnRzL3NjaGVtYXMvUGV0IgogICAgRXJyb3I6CiAgICAgIHR5cGU6IG9iamVjdAogICAgICByZXF1aXJlZDoKICAgICAgICAtIGNvZGUKICAgICAgICAtIG1lc3NhZ2UKICAgICAgcHJvcGVydGllczoKICAgICAgICBjb2RlOgogICAgICAgICAgdHlwZTogaW50ZWdlcgogICAgICAgICAgZm9ybWF0OiBpbnQzMgogICAgICAgIG1lc3NhZ2U6CiAgICAgICAgICB0eXBlOiBzdHJpbmcK");
+  public static final String PROJECT_METADATA_GROUP = "dev.pollito";
+  public static final String PROJECT_METADATA_ARTIFACT = "post";
+  public static final String PROJECT_METADATA_DESCRIPTION =
+      "post - Pollito Opinionated Spring-Boot Template";
 
   private static Stream<Options> optionsProvider() {
     List<Options> optionsList = new ArrayList<>();
@@ -49,14 +43,14 @@ class GeneratePoofServiceTest {
       for (boolean controllerAdvice : new boolean[] {true, false}) {
         for (boolean logFilter : new boolean[] {true, false}) {
           for (boolean loggingAspect : new boolean[] {true, false}) {
-            for (boolean consumeOtherServices : new boolean[] {true, false}) {
+            for (boolean consumesOtherServicesWithOAS : new boolean[] {true, false}) {
               optionsList.add(
                   new Options()
                       .allowCorsFromAnySource(allowCors)
                       .controllerAdvice(controllerAdvice)
                       .logFilter(logFilter)
                       .loggingAspect(loggingAspect)
-                      .consumeOtherServices(consumeOtherServices));
+                      .consumesOtherServicesWithOAS(consumesOtherServicesWithOAS));
             }
           }
         }
@@ -71,7 +65,6 @@ class GeneratePoofServiceTest {
   void generatedZipContainsExpectedFiles(Options options) {
     PoofRequest request =
         new PoofRequest()
-            .contract(new Contract().content(BASE64_OAS_FILE.get(PETSTORE)).name(PETSTORE))
             .projectMetadata(
                 new ProjectMetadata()
                     .group(PROJECT_METADATA_GROUP)
@@ -110,12 +103,26 @@ class GeneratePoofServiceTest {
 
   @NotNull
   private static Map<String, Boolean> buildExpectedEntryNamesMap(@NotNull PoofRequest request) {
+    String groupArtifactPath =
+        PROJECT_METADATA_GROUP.replace(".", "/") + "/" + PROJECT_METADATA_ARTIFACT;
+
     Map<String, Boolean> expectedEntryNames = new HashMap<>();
     expectedEntryNames.put(".mvn/wrapper/maven-wrapper.properties", false);
-    expectedEntryNames.put("src/main/java/dev/pollito/poof/PoofApplication.java", false);
+    expectedEntryNames.put(
+        "src/main/java/"
+            + groupArtifactPath
+            + "/"
+            + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+            + "Application.java",
+        false);
     expectedEntryNames.put("src/main/resources/application.yml", false);
-    expectedEntryNames.put("src/main/resources/openapi/" + PETSTORE + ".yaml", false);
-    expectedEntryNames.put("src/test/java/dev/pollito/poof/PoofApplicationTests.java", false);
+    expectedEntryNames.put(
+        "src/test/java/"
+            + groupArtifactPath
+            + "/"
+            + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+            + "ApplicationTests.java",
+        false);
     expectedEntryNames.put(".gitignore", false);
     expectedEntryNames.put("HELP.md", false);
     expectedEntryNames.put("mvnw", false);
@@ -123,18 +130,22 @@ class GeneratePoofServiceTest {
     expectedEntryNames.put("pom.xml", false);
 
     if (request.getOptions().getLoggingAspect()) {
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java", false);
+      expectedEntryNames.put(
+          "src/main/java/" + groupArtifactPath + "/aspect/LoggingAspect.java", false);
     }
     if (request.getOptions().getLogFilter()) {
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/LogFilterConfig.java", false);
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/filter/LogFilter.java", false);
+      expectedEntryNames.put(
+          "src/main/java/" + groupArtifactPath + "/config/LogFilterConfig.java", false);
+      expectedEntryNames.put("src/main/java/" + groupArtifactPath + "/filter/LogFilter.java", false);
     }
     if (request.getOptions().getAllowCorsFromAnySource()) {
-      expectedEntryNames.put("src/main/java/dev/pollito/poof/config/WebConfig.java", false);
+      expectedEntryNames.put(
+          "src/main/java/" + groupArtifactPath + "/config/WebConfig.java", false);
     }
     if (request.getOptions().getControllerAdvice()) {
       expectedEntryNames.put(
-          "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java", false);
+          "src/main/java/" + groupArtifactPath + "/controller/advice/GlobalControllerAdvice.java",
+          false);
     }
     return expectedEntryNames;
   }

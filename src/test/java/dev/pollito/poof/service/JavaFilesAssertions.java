@@ -1,6 +1,8 @@
 package dev.pollito.poof.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static ch.qos.logback.core.util.StringUtil.capitalizeFirstLetter;
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_ARTIFACT;
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_GROUP;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,31 +16,39 @@ public class JavaFilesAssertions {
   public static void javaFilesAssertions(
       PoofRequest request, @NotNull String entryName, @NotNull String javaFileContent) {
     assertTrue(
-        javaFileContent.startsWith("package dev.pollito.poof"),
-        entryName + " should start with 'package dev.pollito.poof'");
+        javaFileContent.startsWith(
+            "package " + PROJECT_METADATA_GROUP + "." + PROJECT_METADATA_ARTIFACT),
+        entryName
+            + " should start with 'package "
+            + PROJECT_METADATA_GROUP
+            + "."
+            + PROJECT_METADATA_ARTIFACT
+            + "'");
 
-    if (entryName.equals("src/main/java/dev/pollito/poof/PoofApplication.java")) {
+    if (entryName.equals(
+        "src/main/java/"
+            + PROJECT_METADATA_GROUP.replace(".", "/")
+            + "/"
+            + PROJECT_METADATA_ARTIFACT
+            + "/PoofApplication.java")) {
       mainJavaFileAssertions(javaFileContent);
     }
-    if (entryName.equals("src/test/java/dev/pollito/poof/PoofApplicationTests.java")) {
+    if (entryName.equals(
+        "src/test/java/"
+            + PROJECT_METADATA_GROUP.replace(".", "/")
+            + "/"
+            + PROJECT_METADATA_ARTIFACT
+            + "/PoofApplicationTests.java")) {
       appTestFileAssertions(javaFileContent);
     }
-    if (entryName.equals("src/main/java/dev/pollito/poof/aspect/LoggingAspect.java")) {
+    if (entryName.equals(
+        "src/main/java/"
+            + PROJECT_METADATA_GROUP.replace(".", "/")
+            + "/"
+            + PROJECT_METADATA_ARTIFACT
+            + "/aspect/LoggingAspect.java")) {
       aspectAssertions(request, javaFileContent);
     }
-    if (entryName.equals(
-        "src/main/java/dev/pollito/poof/controller/advice/GlobalControllerAdvice.java")) {
-      controllerAdviceAssertions(javaFileContent);
-    }
-  }
-
-  private static void controllerAdviceAssertions(@NotNull String javaFileContent) {
-    assertFalse(
-        javaFileContent.contains("/*ConsumerExceptionImports*/"),
-        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionImports*/");
-    assertFalse(
-        javaFileContent.contains("/*ConsumerExceptionHandlers*/"),
-        "GlobalControllerAdvice.java should not contain /*ConsumerExceptionHandlers*/");
   }
 
   private static void aspectAssertions(@NotNull PoofRequest request, String aspectContent) {
@@ -49,7 +59,11 @@ public class JavaFilesAssertions {
           "LoggingAspect.java should contain the correct class name");
       assertTrue(
           aspectContent.contains(
-              "@Pointcut(\"execution(public * dev.pollito.poof.controller..*.*(..))\")"),
+              "@Pointcut(\"execution(public * "
+                  + PROJECT_METADATA_GROUP
+                  + "."
+                  + PROJECT_METADATA_ARTIFACT
+                  + ".controller..*.*(..))\")"),
           "LoggingAspect.java should contain the correct pointcut expression");
     } else {
       assertNull(aspectContent, "LoggingAspect.java should not exist");
@@ -57,19 +71,30 @@ public class JavaFilesAssertions {
   }
 
   private static void appTestFileAssertions(String appTestFileContent) {
-    assertNotNull(appTestFileContent, "PoofApplicationTests.java content should not be null");
+    assertNotNull(
+        appTestFileContent,
+        capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+            + "ApplicationTests.java content should not be null");
     assertTrue(
-        appTestFileContent.contains("class PoofApplicationTests {"),
+        appTestFileContent.contains(
+            "class " + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT) + "ApplicationTests {"),
         "Main Java application test file should contain the correct class name");
   }
 
   private static void mainJavaFileAssertions(String mainJavaAppFileContent) {
-    assertNotNull(mainJavaAppFileContent, "PoofApplication.java content should not be null");
+    assertNotNull(
+        mainJavaAppFileContent,
+        capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+            + "Application.java content should not be null");
     assertTrue(
-        mainJavaAppFileContent.contains("public class PoofApplication {"),
+        mainJavaAppFileContent.contains(
+            "public class " + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT) + "Application {"),
         "Main Java application file should contain the correct class name");
     assertTrue(
-        mainJavaAppFileContent.contains("SpringApplication.run(PoofApplication.class, args);"),
+        mainJavaAppFileContent.contains(
+            "SpringApplication.run("
+                + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+                + "Application.class, args);"),
         "Main Java application file should run the correct SpringApplication.run");
   }
 }

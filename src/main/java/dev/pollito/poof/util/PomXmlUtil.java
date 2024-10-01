@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 public class PomXmlUtil {
   private PomXmlUtil() {}
 
-  public static final String ASPECTJ =
+  public static final String ASPECTJ_DEPENDENCY =
       """
 
-                      <dependency>
-                          <groupId>org.aspectj</groupId>
-                          <artifactId>aspectjtools</artifactId>
-                          <version>1.9.22.1</version>
-                      </dependency>
+                          <dependency>
+                              <groupId>org.aspectj</groupId>
+                              <artifactId>aspectjtools</artifactId>
+                              <version>1.9.22.1</version>
+                          </dependency>
                   """;
 
   public static final String CONSUMER_DEPENDENCIES =
@@ -104,17 +104,17 @@ public class PomXmlUtil {
   }
 
   private static String consumerDependenciesReplacement(@NotNull PoofRequest request) {
-    return Boolean.TRUE.equals(request.getOptions().getConsumeOtherServices())
+    return Boolean.TRUE.equals(request.getOptions().getConsumesOtherServicesWithOAS())
         ? CONSUMER_DEPENDENCIES
         : "";
   }
 
   private static @NotNull String aspectjReplacement(@NotNull PoofRequest request) {
-    return Boolean.TRUE.equals(request.getOptions().getLoggingAspect()) ? ASPECTJ : "";
+    return Boolean.TRUE.equals(request.getOptions().getLoggingAspect()) ? ASPECTJ_DEPENDENCY : "";
   }
 
   private static @NotNull String consumerGenerationReplacement(@NotNull PoofRequest request) {
-    return Boolean.TRUE.equals(request.getOptions().getConsumeOtherServices())
+    return Boolean.TRUE.equals(request.getOptions().getConsumesOtherServicesWithOAS())
         ? CONSUMER_EXECUTION_BLOCK
         : "";
   }

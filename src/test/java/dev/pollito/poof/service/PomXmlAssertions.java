@@ -1,5 +1,8 @@
 package dev.pollito.poof.service;
 
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_ARTIFACT;
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_DESCRIPTION;
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_GROUP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,7 +23,7 @@ public class PomXmlAssertions {
 
   private static void pomXmlConsumerGenerationPluginConfigAssertions(
       @NotNull PoofRequest request, @NotNull String pomXmlContent) {
-    boolean expected = request.getOptions().getConsumeOtherServices();
+    boolean expected = request.getOptions().getConsumesOtherServicesWithOAS();
     String idTag = "<id>consumer generation - <!--name--></id>";
     assertEquals(
         expected,
@@ -39,7 +42,7 @@ public class PomXmlAssertions {
             "<artifactId>jsr305</artifactId>",
             "<artifactId>junit-jupiter-api</artifactId>",
             "<artifactId>feign-gson</artifactId>");
-    boolean expected = request.getOptions().getConsumeOtherServices();
+    boolean expected = request.getOptions().getConsumesOtherServicesWithOAS();
 
     dependencies.forEach(
         dependency ->
@@ -51,18 +54,12 @@ public class PomXmlAssertions {
 
   private static void pomXmlProviderGenerationAssertions(@NotNull String pomXmlContent) {
     assertTrue(
-        pomXmlContent.contains("<id>provider generation - poof.yaml</id>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution id");
+        pomXmlContent.contains("<id>provider generation - <!--name of the OAS file-->.yaml</id>"),
+        "pom.xml org.openapitools:openapi-generator-maven-plugin provider execution should contain the id tag");
     assertTrue(
         pomXmlContent.contains(
-            "<inputSpec>${project.basedir}/src/main/resources/openapi/poof.yaml</inputSpec>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration inputSpec");
-    assertTrue(
-        pomXmlContent.contains("<apiPackage>${project.groupId}.poof.api</apiPackage>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration apiPackage");
-    assertTrue(
-        pomXmlContent.contains("<modelPackage>${project.groupId}.poof.model</modelPackage>"),
-        "pom.xml should contain the correct org.openapitools:openapi-generator-maven-plugin provider execution configuration modelPackage");
+            "<inputSpec>${project.basedir}/src/main/resources/openapi/<!--name of the OAS file-->.yaml</inputSpec>"),
+        "pom.xml org.openapitools:openapi-generator-maven-plugin provider execution should contain the inputSpec tag");
   }
 
   private static void pomXmlAspectjAssertions(
@@ -78,16 +75,16 @@ public class PomXmlAssertions {
 
   private static void pomXmlBasicInfoAssertions(@NotNull String pomXmlContent) {
     assertTrue(
-        pomXmlContent.contains("<groupId>dev.pollito</groupId>"),
+        pomXmlContent.contains("<groupId>" + PROJECT_METADATA_GROUP + "</groupId>"),
         "pom.xml should contain the correct <groupId>");
     assertTrue(
-        pomXmlContent.contains("<artifactId>poof</artifactId>"),
+        pomXmlContent.contains("<artifactId>" + PROJECT_METADATA_ARTIFACT + "</artifactId>"),
         "pom.xml should contain the correct <artifactId>");
     assertTrue(
-        pomXmlContent.contains("<name>poof</name>"), "pom.xml should contain the correct <name>");
+        pomXmlContent.contains("<name>" + PROJECT_METADATA_ARTIFACT + "</name>"),
+        "pom.xml should contain the correct <name>");
     assertTrue(
-        pomXmlContent.contains(
-            "<description>poof - Pollito Over Opinionated Framework</description>"),
+        pomXmlContent.contains("<description>" + PROJECT_METADATA_DESCRIPTION + "</description>"),
         "pom.xml should contain the correct <description>");
   }
 }

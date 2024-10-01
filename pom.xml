@@ -174,8 +174,8 @@
                             <inputSpec>${project.basedir}/src/main/resources/openapi/poof.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <output>${project.build.directory}/generated-sources/openapi/</output>
-                            <apiPackage>${project.groupId}.poof.api</apiPackage>
-                            <modelPackage>${project.groupId}.poof.model</modelPackage>
+                            <apiPackage>${project.groupId}.${project.artifactId}.api</apiPackage>
+                            <modelPackage>${project.groupId}.${project.artifactId}.model</modelPackage>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
                                 <skipOperationExample>true</skipOperationExample>

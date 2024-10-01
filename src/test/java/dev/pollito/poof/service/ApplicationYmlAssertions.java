@@ -1,5 +1,6 @@
 package dev.pollito.poof.service;
 
+import static dev.pollito.poof.service.GeneratePoofServiceTest.PROJECT_METADATA_ARTIFACT;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,7 +11,7 @@ public class ApplicationYmlAssertions {
 
   public static void applicationYmlAssertions(@NotNull String applicationYmlContent) {
     assertTrue(
-        applicationYmlContent.contains("name: poof"),
+        applicationYmlContent.contains("name: " + PROJECT_METADATA_ARTIFACT),
         "application.yml should contain the correct spring application name");
     assertFalse(
         applicationYmlContent.contains("#artifact"),

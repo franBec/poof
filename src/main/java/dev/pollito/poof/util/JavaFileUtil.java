@@ -20,7 +20,6 @@ public class JavaFileUtil {
 
   private static final String DEMO_APPLICATION_JAVA = "DemoApplication.java";
   private static final String DEMO_APPLICATION_TESTS_JAVA = "DemoApplicationTests.java";
-  private static final String GLOBAL_CONTROLLER_ADVICE_JAVA = "GlobalControllerAdvice.java";
 
   private JavaFileUtil() {}
 
@@ -68,7 +67,7 @@ public class JavaFileUtil {
         new AbstractMap.SimpleEntry<>(
             "config/WebConfig.java", request.getOptions().getAllowCorsFromAnySource()),
         new AbstractMap.SimpleEntry<>(
-            "controller/advice/" + GLOBAL_CONTROLLER_ADVICE_JAVA,
+            "controller/advice/GlobalControllerAdvice.java",
             request.getOptions().getControllerAdvice()),
         new AbstractMap.SimpleEntry<>(
             "config/LogFilterConfig.java", request.getOptions().getLogFilter()),

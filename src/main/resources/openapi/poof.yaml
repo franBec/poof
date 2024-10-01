@@ -37,34 +37,6 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Contract:
-      properties:
-        content:
-          description: base64 OAS yaml file content
-          type: string
-        name:
-          description: name of the file (names are lost when file converted to base64)
-          pattern: '^[a-z]+([A-Z][a-z]*){0,15}$'
-          type: string
-        packageName:
-          description: package name where all related generated code will go into
-          pattern: '^([a-z]+(\.[a-z][a-z0-9]*)*)$'
-          type: string
-      type: object
-      required:
-        - content
-        - name
-    Contracts:
-      properties:
-        consumerContracts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Contract'
-        providerContract:
-          $ref: '#/components/schemas/Contract'
-      required:
-        - providerContract
-      type: object
     Error:
       properties:
         detail:
@@ -99,9 +71,9 @@ components:
     Options:
       properties:
         allowCorsFromAnySource:
-          default: true
+          default: false
           type: boolean
-        consumeOtherServices:
+        consumesOtherServicesWithOAS:
           default: false
           type: boolean
         controllerAdvice:
@@ -116,14 +88,11 @@ components:
       type: object
     PoofRequest:
       properties:
-        contract:
-          $ref: '#/components/schemas/Contract'
         options:
           $ref: '#/components/schemas/Options'
         projectMetadata:
           $ref: '#/components/schemas/ProjectMetadata'
       required:
-        - contract
         - options
         - projectMetadata
       type: object
