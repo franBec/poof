@@ -20,6 +20,7 @@ public class JavaFileUtil {
 
   private static final String DEMO_APPLICATION_JAVA = "DemoApplication.java";
   private static final String DEMO_APPLICATION_TESTS_JAVA = "DemoApplicationTests.java";
+  private static final String DEMO_CONTROLLER = "DemoController.java";
 
   private JavaFileUtil() {}
 
@@ -55,6 +56,7 @@ public class JavaFileUtil {
         new HashMap<>();
     actionMap.put(DEMO_APPLICATION_JAVA, JavaFileUtil::addJavaMainToZip);
     actionMap.put(DEMO_APPLICATION_TESTS_JAVA, JavaFileUtil::addJavaMainTestToZip);
+    actionMap.put(DEMO_CONTROLLER, JavaFileUtil::addControllerToZip);
 
     return actionMap;
   }
@@ -102,6 +104,21 @@ public class JavaFileUtil {
         zipEntryName.replace(
             DEMO_APPLICATION_JAVA,
             capitalizeFirstLetter(request.getProjectMetadata().getArtifact()) + "Application.java"),
+        zipOutputStream,
+        javaReplacements(request.getProjectMetadata()));
+  }
+
+  @SneakyThrows
+  private static void addControllerToZip(
+      ZipOutputStream zipOutputStream,
+      @NotNull PoofRequest request,
+      File file,
+      @NotNull String zipEntryName) {
+    ZipUtil.addFileToZip(
+        file,
+        zipEntryName.replace(
+            DEMO_CONTROLLER,
+            capitalizeFirstLetter(request.getProjectMetadata().getArtifact()) + "Controller.java"),
         zipOutputStream,
         javaReplacements(request.getProjectMetadata()));
   }

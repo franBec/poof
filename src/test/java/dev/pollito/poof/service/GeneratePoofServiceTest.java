@@ -115,6 +115,13 @@ class GeneratePoofServiceTest {
             + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
             + "Application.java",
         false);
+    expectedEntryNames.put(
+        "src/main/java/"
+            + groupArtifactPath
+            + "/controller/"
+            + capitalizeFirstLetter(PROJECT_METADATA_ARTIFACT)
+            + "Controller.java",
+        false);
     expectedEntryNames.put("src/main/resources/application.yml", false);
     expectedEntryNames.put(
         "src/test/java/"
@@ -136,7 +143,8 @@ class GeneratePoofServiceTest {
     if (request.getOptions().getLogFilter()) {
       expectedEntryNames.put(
           "src/main/java/" + groupArtifactPath + "/config/LogFilterConfig.java", false);
-      expectedEntryNames.put("src/main/java/" + groupArtifactPath + "/filter/LogFilter.java", false);
+      expectedEntryNames.put(
+          "src/main/java/" + groupArtifactPath + "/filter/LogFilter.java", false);
     }
     if (request.getOptions().getAllowCorsFromAnySource()) {
       expectedEntryNames.put(
